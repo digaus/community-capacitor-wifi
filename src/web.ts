@@ -13,6 +13,11 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
     console.log('ECHO', options);
     return options;
   }
+
+  async getIp(): Promise<{ value: string | null }> {
+    console.log('getIp');
+    return { value: null };
+  }
 }
 
 const Wifi = new WifiWeb();

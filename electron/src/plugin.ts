@@ -1,7 +1,7 @@
 import { WebPlugin } from "@capacitor/core";
 import { WifiPlugin } from "./definitions";
 const { remote } = require("electron");
-export class WifiPluginWeb extends WebPlugin
+export class WifiWeb extends WebPlugin
     implements WifiPlugin {
     Path: any = null;
     NodeFs: any = null;
@@ -21,8 +21,17 @@ export class WifiPluginWeb extends WebPlugin
         console.log(this.RemoteRef);
         return options;
     }
+
+    async getIp(): Promise<{ value: string }> {
+        var ifs = require('os').networkInterfaces();
+        console.log(ifs)
+        var ip = Object.keys(ifs)
+          .map(x => ifs[x].filter((x: any) => x.family === 'IPv4' && !x.internal)[0])
+          .filter(x => x)[0].address;
+        return ip;
+    }
 }
-const Wifi = new WifiPluginWeb();
+const Wifi = new WifiWeb();
 export { Wifi };
 import { registerWebPlugin } from "@capacitor/core";
 registerWebPlugin(Wifi);

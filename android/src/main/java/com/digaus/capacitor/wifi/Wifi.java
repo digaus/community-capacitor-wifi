@@ -17,4 +17,11 @@ public class Wifi extends Plugin {
         ret.put("value", value);
         call.success(ret);
     }
+
+    @PluginMethod
+    public void getIp(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("value", null);
+        call.success(ret);
+    }
 }

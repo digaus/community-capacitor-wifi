@@ -6,3 +6,7 @@
 CAP_PLUGIN(Wifi, "Wifi",
            CAP_PLUGIN_METHOD(echo, CAPPluginReturnPromise);
 )
+CAP_PLUGIN(Wifi, "Wifi",
+           CAP_PLUGIN_METHOD(getIp, CAPPluginReturnPromise);
+)
+

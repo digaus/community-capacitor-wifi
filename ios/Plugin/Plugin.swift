@@ -14,4 +14,10 @@ public class Wifi: CAPPlugin {
             "value": value
         ])
     }
+
+    @objc func getIp(_ call: CAPPluginCall) {
+        call.success([
+            "value": nil
+        ])
+    }
 }
