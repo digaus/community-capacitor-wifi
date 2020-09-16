@@ -2117,31 +2117,33 @@ var capacitorPlugin = (function (exports) {
         mergeWebPlugin(Plugins, plugin);
     };
 
-    const { remote } = require("electron");
+    const { remote } = require('electron');
     class WifiWeb extends WebPlugin {
         constructor() {
             super({
-                name: "WifiPlugin",
-                platforms: ["electron"],
+                name: 'Wifi',
+                platforms: ['electron'],
             });
             this.Path = null;
             this.NodeFs = null;
             this.RemoteRef = null;
-            console.log("WifiPlugin");
+            this.Os = null;
+            console.log('Wifi');
             this.RemoteRef = remote;
-            this.Path = require("path");
-            this.NodeFs = require("fs");
+            this.Path = require('path');
+            this.NodeFs = require('fs');
+            this.Os = require('os');
         }
         echo(options) {
             return __awaiter(this, void 0, void 0, function* () {
-                console.log("ECHO", options);
+                console.log('ECHO', options);
                 console.log(this.RemoteRef);
                 return options;
             });
         }
         getIp() {
             return __awaiter(this, void 0, void 0, function* () {
-                var ifs = require('os').networkInterfaces();
+                var ifs = this.Os.networkInterfaces();
                 console.log(ifs);
                 var ip = Object.keys(ifs)
                     .map(x => ifs[x].filter((x) => x.family === 'IPv4' && !x.internal)[0])
