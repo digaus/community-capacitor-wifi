@@ -15,16 +15,14 @@ export class WifiWeb extends WebPlugin {
             platforms: ['web'],
         });
     }
-    echo(options) {
+    getIP() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('ECHO', options);
-            return options;
+            return { ip: null };
         });
     }
-    getIp() {
+    getSSID() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('getIp');
-            return { value: null };
+            return { ssid: null };
         });
     }
 }
