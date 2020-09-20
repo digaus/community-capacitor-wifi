@@ -1,19 +1,18 @@
 import { WebPlugin } from '@capacitor/core';
 import { WifiPlugin } from './definitions';
-export declare class WifiWeb extends WebPlugin implements WifiPlugin {
+export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
     Path: any;
     NodeFs: any;
     RemoteRef: any;
     Os: any;
+    Wifi: any;
     constructor();
-    echo(options: {
-        value: string;
-    }): Promise<{
-        value: string;
+    getIP(): Promise<{
+        ip: string;
     }>;
-    getIp(): Promise<{
-        value: string;
+    getSSID(): Promise<{
+        ssid: string | null;
     }>;
 }
-declare const Wifi: WifiWeb;
+declare const Wifi: WifiWebElectron;
 export { Wifi };

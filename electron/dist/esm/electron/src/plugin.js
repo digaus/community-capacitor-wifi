@@ -1,7 +1,7 @@
 import { __awaiter } from "tslib";
 import { WebPlugin } from '@capacitor/core';
 const { remote } = require('electron');
-export class WifiWeb extends WebPlugin {
+export class WifiWebElectron extends WebPlugin {
     constructor() {
         super({
             name: 'Wifi',
@@ -11,31 +11,37 @@ export class WifiWeb extends WebPlugin {
         this.NodeFs = null;
         this.RemoteRef = null;
         this.Os = null;
+        this.Wifi = null;
         console.log('Wifi');
         this.RemoteRef = remote;
         this.Path = require('path');
         this.NodeFs = require('fs');
         this.Os = require('os');
-    }
-    echo(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('ECHO', options);
-            console.log(this.RemoteRef);
-            return options;
+        this.Wifi = require('node-wifi');
+        this.Wifi.init({
+            iface: null,
         });
     }
-    getIp() {
+    getIP() {
         return __awaiter(this, void 0, void 0, function* () {
             var ifs = this.Os.networkInterfaces();
             console.log(ifs);
             var ip = Object.keys(ifs)
                 .map(x => ifs[x].filter((x) => x.family === 'IPv4' && !x.internal)[0])
                 .filter(x => x)[0].address;
-            return ip;
+            return { ip };
+        });
+    }
+    getSSID() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const currentConnections = yield this.Wifi.getCurrentConnections();
+            if (currentConnections && currentConnections[0]) {
+                return { ssid: currentConnections[0].ssid };
+            }
         });
     }
 }
-const Wifi = new WifiWeb();
+const Wifi = new WifiWebElectron();
 export { Wifi };
 import { registerWebPlugin } from '@capacitor/core';
 registerWebPlugin(Wifi);

@@ -9,14 +9,12 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
     });
   }
 
-  async echo(options: { value: string }): Promise<{ value: string }> {
-    console.log('ECHO', options);
-    return options;
+  async getIP(): Promise<{ ip: string | null }> {
+    return { ip: null };
   }
-
-  async getIp(): Promise<{ value: string | null }> {
-    console.log('getIp');
-    return { value: null };
+  
+  async getSSID(): Promise<{ssid: string | null}> {
+    return { ssid: null }
   }
 }
 

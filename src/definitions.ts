@@ -5,7 +5,7 @@ declare module '@capacitor/core' {
 }
 
 export interface WifiPlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
-  getIp(): Promise<{ value: string | null }>;
+  getIP(): Promise<{ ip: string | null }>;
+  getSSID(): Promise<{ ssid: string | null }>;
 
 }

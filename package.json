@@ -69,5 +69,8 @@
   },
   "bugs": {
     "url": "https://github.com/digaus/community-capacitor-wifi/issues"
+  },
+  "dependencies": {
+    "node-wifi": "^2.0.13"
   }
 }
