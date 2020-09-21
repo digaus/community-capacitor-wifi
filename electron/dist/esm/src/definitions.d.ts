@@ -10,4 +10,16 @@ export interface WifiPlugin {
     getSSID(): Promise<{
         ssid: string | null;
     }>;
+    connect(options: {
+        ssid: string;
+        password?: string;
+    }): Promise<{
+        ssid: string | null;
+    }>;
+    connectPrefix(options: {
+        ssid: string;
+        password?: string;
+    }): Promise<{
+        ssid: string | null;
+    }>;
 }

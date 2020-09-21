@@ -16,6 +16,15 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
   async getSSID(): Promise<{ssid: string | null}> {
     return { ssid: null }
   }
+
+  async connect(options: { ssid: string, password?: string, authType?: string }): Promise<{ ssid: string | null }> {
+    console.log(options);
+    return { ssid: null };
+  }
+  async connectPrefix(options: { ssid: string, password?: string, authType?: string }): Promise<{ ssid: string | null }> {
+    console.log(options);
+    return { ssid: null };
+  }
 }
 
 const Wifi = new WifiWeb();

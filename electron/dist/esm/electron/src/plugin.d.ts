@@ -13,6 +13,22 @@ export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
     getSSID(): Promise<{
         ssid: string | null;
     }>;
+    connect(options: {
+        ssid: string;
+        password?: string;
+        authType?: string;
+    }): Promise<{
+        ssid: string | null;
+    }>;
+    connectPrefix(options: {
+        ssid: string;
+        password?: string;
+        authType?: string;
+    }): Promise<{
+        ssid: string | null;
+    }>;
+    private checkConnection;
+    private timeout;
 }
 declare const Wifi: WifiWebElectron;
 export { Wifi };
