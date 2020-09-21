@@ -65,11 +65,11 @@ public class WifiService {
             result.put("ip", ipString);
             call.success(result);
         } else {
-            call.error("NO_VALID_IP_IDENTIFIED");
+            call.reject("NO_VALID_IP_IDENTIFIED");
         }
     }
 
-    public void getConnectedSSID(PluginCall call) {
+    public void getSSID(PluginCall call) {
 
         String connectedSSID = this.getWifiServiceInfo(call);
         Log.i(TAG, "Connected SSID: " + connectedSSID);
@@ -79,6 +79,102 @@ public class WifiService {
             result.put("ssid", connectedSSID);
             call.success(result);
         }
+    }
+
+    public void connect(PluginCall call) {
+        this.savedCall = call;
+        if (API_VERSION < 29) {
+            call.reject("ERROR_ANDROID_VERSION_CURRENTLY_NOT_SUPPORTED");
+        } else {
+            String ssid = call.getString("ssid");
+            String password =  call.getString("password");
+            String connectedSSID = this.getWifiServiceInfo(call);
+
+            if (!ssid.equals(connectedSSID)) {
+                WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
+                builder.setSsid(ssid);
+                if (password != null && password.length() > 0) {
+                    builder.setWpa2Passphrase(password);
+                }
+
+                WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
+                NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
+                networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
+                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
+                networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
+                NetworkRequest networkRequest = networkRequestBuilder.build();
+                this.forceWifiUsageQ(networkRequest, false);
+            } else {
+                this.getSSID(call);
+            }
+        }
+
+    }
+
+    public void connectPrefix(PluginCall call) {
+        this.savedCall = call;
+        if (API_VERSION < 29) {
+            call.reject("ERROR_API_29_OR_GREATER_REQUIRED");
+        } else {
+            String ssid = call.getString("ssid");
+            String password =  call.getString("password");
+
+            String connectedSSID = this.getWifiServiceInfo(call);
+
+            if (!ssid.equals(connectedSSID)) {
+                WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
+                PatternMatcher ssidPattern = new PatternMatcher(ssid, PatternMatcher.PATTERN_PREFIX);
+                builder.setSsidPattern(ssidPattern);
+                if (password != null && password.length() > 0) {
+                    builder.setWpa2Passphrase(password);
+                }
+
+                WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
+                NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
+                networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
+                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
+                networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
+                NetworkRequest networkRequest = networkRequestBuilder.build();
+                this.forceWifiUsageQ(networkRequest, true);
+            } else {
+                this.getSSID(call);
+            }
+        }
+
+    }
+
+    private void forceWifiUsageQ(NetworkRequest networkRequest, boolean prefix) {
+        final ConnectivityManager manager = (ConnectivityManager) this.context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (networkRequest == null) {
+            networkRequest = new NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build();
+        }
+
+        manager.requestNetwork(networkRequest, new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network network) {
+                manager.bindProcessToNetwork(network);
+                String currentSSID = WifiService.this.getWifiServiceInfo(null);
+                PluginCall call = WifiService.this.savedCall;
+                String ssid = call.getString("ssid");
+                if (prefix && currentSSID.startsWith(ssid) || !prefix && currentSSID.equals(ssid)) {
+                    WifiService.this.getSSID(WifiService.this.savedCall);
+                } else {
+                    call.reject("ERROR_CONNECTED_SSID_DOES_NOT_MATCH_REQUESTED_SSID");
+                }
+                WifiService.this.networkCallback = this;
+            }
+            @Override
+            public void onUnavailable() {
+                PluginCall call = WifiService.this.savedCall;
+                call.reject("ERROR_CONNECTION_FAILED");
+            }
+        });
     }
 
     private String formatIP(int ip) {
@@ -97,14 +193,14 @@ public class WifiService {
         WifiInfo info = wifiManager.getConnectionInfo();
 
         if (info == null) {
-            call.error("ERROR_READING_WIFI_INFO");
+            call.reject("ERROR_READING_WIFI_INFO");
             return null;
         }
 
         // Throw Error when there connection is not finished
         SupplicantState state = info.getSupplicantState();
         if (!state.equals(SupplicantState.COMPLETED)) {
-            call.error("ERROR_CONNECTION_NOT_COMPLETED");
+            call.reject("ERROR_CONNECTION_NOT_COMPLETED");
             return null;
         }
 
@@ -112,7 +208,7 @@ public class WifiService {
         serviceInfo = info.getSSID();
 
         if (serviceInfo == null || serviceInfo.isEmpty() || serviceInfo == "0x") {
-            call.error("ERROR_EMPTY_WIFI_INFORMATION");
+            call.reject("ERROR_EMPTY_WIFI_INFORMATION");
             return null;
         }
 

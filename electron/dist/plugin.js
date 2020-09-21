@@ -2142,7 +2142,6 @@ var capacitorPlugin = (function (exports) {
         getIP() {
             return __awaiter(this, void 0, void 0, function* () {
                 var ifs = this.Os.networkInterfaces();
-                console.log(ifs);
                 var ip = Object.keys(ifs)
                     .map(x => ifs[x].filter((x) => x.family === 'IPv4' && !x.internal)[0])
                     .filter(x => x)[0].address;
@@ -2153,9 +2152,42 @@ var capacitorPlugin = (function (exports) {
             return __awaiter(this, void 0, void 0, function* () {
                 const currentConnections = yield this.Wifi.getCurrentConnections();
                 if (currentConnections && currentConnections[0]) {
+                    console.log(currentConnections);
                     return { ssid: currentConnections[0].ssid };
                 }
             });
+        }
+        connect(options) {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield this.Wifi.connect(options);
+                return this.checkConnection();
+            });
+        }
+        connectPrefix(options) {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield this.Wifi.connect(options);
+                return this.checkConnection();
+            });
+        }
+        checkConnection(retry = 10) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let result;
+                let count = 0;
+                while (!result && count < retry) {
+                    count++;
+                    result = yield this.getSSID();
+                    yield this.timeout(200);
+                }
+                console.log(count);
+                return result;
+            });
+        }
+        timeout(millis) {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                setTimeout(() => {
+                    resolve();
+                }, millis);
+            }));
         }
     }
     const Wifi = new WifiWebElectron();

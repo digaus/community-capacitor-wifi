@@ -25,6 +25,18 @@ export class WifiWeb extends WebPlugin {
             return { ssid: null };
         });
     }
+    connect(options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log(options);
+            return { ssid: null };
+        });
+    }
+    connectPrefix(options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log(options);
+            return { ssid: null };
+        });
+    }
 }
 const Wifi = new WifiWeb();
 export { Wifi };

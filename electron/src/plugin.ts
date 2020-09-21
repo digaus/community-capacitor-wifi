@@ -27,7 +27,6 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
 
     async getIP(): Promise<{ ip: string }> {
         var ifs = this.Os.networkInterfaces();
-        console.log(ifs)
         var ip = Object.keys(ifs)
             .map(x => ifs[x].filter((x: any) => x.family === 'IPv4' && !x.internal)[0])
             .filter(x => x)[0].address;
@@ -50,9 +49,42 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
           }[] = await this.Wifi.getCurrentConnections();
         if (currentConnections && currentConnections[0]) {
             return { ssid: currentConnections[0].ssid };
+        } else {
+            throw new Error('ERROR_NO_NETWORK_FOUND');
         }
     }
+    async connect(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {
+       await this.Wifi.connect(options)
+       return this.checkConnection();
+    }
 
+    async connectPrefix(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {
+        // TODO List Networks in Popup which are available via SCAN and match the prefix
+        await this.Wifi.connect(options)
+        return this.checkConnection();
+    }
+
+    private async checkConnection(retry: number = 10): Promise<{ ssid: string | null }> {
+        let result: { ssid: string };
+        let count: number = 0;
+        while (!result && count < retry) {
+            count++;
+            result = await this.getSSID().catch(() => null);
+            await this.timeout(100);
+        }
+        if (!result) {
+            throw new Error('ERROR_FAILED_TO_CONNECT');
+        } else {
+            return result;
+        }
+    }
+    private timeout(millis: number): Promise<void> {
+        return new Promise(async (resolve: () => void) => {
+            setTimeout(() => {
+                resolve();
+            }, millis);
+        });
+    }
 }
 const Wifi = new WifiWebElectron();
 export { Wifi };
