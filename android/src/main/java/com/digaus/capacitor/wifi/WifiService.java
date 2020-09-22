@@ -1,37 +1,22 @@
 package com.digaus.capacitor.wifi;
 
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.net.NetworkRequest;
-import android.net.Uri;
-import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.PatternMatcher;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.getcapacitor.Bridge;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.List;
 
 public class WifiService {
     private static String TAG = "WifiService";
@@ -145,7 +130,7 @@ public class WifiService {
 
     }
 
-    private void forceWifiUsageQ(NetworkRequest networkRequest, boolean prefix) {
+    private void forceWifiUsageQ(NetworkRequest networkRequest, final boolean prefix) {
         final ConnectivityManager manager = (ConnectivityManager) this.context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         if (networkRequest == null) {
@@ -154,27 +139,29 @@ public class WifiService {
                     .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     .build();
         }
-
-        manager.requestNetwork(networkRequest, new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(Network network) {
-                manager.bindProcessToNetwork(network);
-                String currentSSID = WifiService.this.getWifiServiceInfo(null);
-                PluginCall call = WifiService.this.savedCall;
-                String ssid = call.getString("ssid");
-                if (prefix && currentSSID.startsWith(ssid) || !prefix && currentSSID.equals(ssid)) {
-                    WifiService.this.getSSID(WifiService.this.savedCall);
-                } else {
-                    call.reject("ERROR_CONNECTED_SSID_DOES_NOT_MATCH_REQUESTED_SSID");
+        if (API_VERSION > 23) {
+            manager.requestNetwork(networkRequest, new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    manager.bindProcessToNetwork(network);
+                    String currentSSID = WifiService.this.getWifiServiceInfo(null);
+                    PluginCall call = WifiService.this.savedCall;
+                    String ssid = call.getString("ssid");
+                    if (prefix && currentSSID.startsWith(ssid) || !prefix && currentSSID.equals(ssid)) {
+                        WifiService.this.getSSID(WifiService.this.savedCall);
+                    } else {
+                        call.reject("ERROR_CONNECTED_SSID_DOES_NOT_MATCH_REQUESTED_SSID");
+                    }
+                    WifiService.this.networkCallback = this;
                 }
-                WifiService.this.networkCallback = this;
-            }
-            @Override
-            public void onUnavailable() {
-                PluginCall call = WifiService.this.savedCall;
-                call.reject("ERROR_CONNECTION_FAILED");
-            }
-        });
+
+                @Override
+                public void onUnavailable() {
+                    PluginCall call = WifiService.this.savedCall;
+                    call.reject("ERROR_CONNECTION_FAILED");
+                }
+            });
+        }
     }
 
     private String formatIP(int ip) {
@@ -219,6 +206,5 @@ public class WifiService {
         return serviceInfo;
 
     }
-    
 
 }
