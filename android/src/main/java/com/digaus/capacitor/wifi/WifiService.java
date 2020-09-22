@@ -206,5 +206,5 @@ public class WifiService {
         return serviceInfo;
 
     }
-    
+
 }
