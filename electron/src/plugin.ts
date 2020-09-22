@@ -13,7 +13,6 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
             name: 'Wifi',
             platforms: ['electron'],
         });
-        console.log('Wifi');
         this.RemoteRef = remote;
         this.Path = require('path');
         this.NodeFs = require('fs');
