@@ -1,22 +1,32 @@
 package com.digaus.capacitor.wifi;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
 import android.net.NetworkRequest;
+import android.net.Uri;
 import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.PatternMatcher;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.getcapacitor.Bridge;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
+
+import java.util.List;
+import java.util.Locale;
 
 public class WifiService {
     private static String TAG = "WifiService";
@@ -69,7 +79,27 @@ public class WifiService {
     public void connect(PluginCall call) {
         this.savedCall = call;
         if (API_VERSION < 29) {
-            call.reject("ERROR_ANDROID_VERSION_CURRENTLY_NOT_SUPPORTED");
+            int networkId = this.add(call);
+            if (networkId > -1) {
+                // Release current connection
+                if (API_VERSION >= 23) {
+                    ConnectivityManager manager = (ConnectivityManager) this.context
+                            .getSystemService(Context.CONNECTIVITY_SERVICE);
+                    manager.bindProcessToNetwork(null);
+                } else if (API_VERSION >= 21) {
+                    ConnectivityManager.setProcessDefaultNetwork(null);
+                }
+
+                wifiManager.enableNetwork(networkId, true);
+                wifiManager.reconnect();
+                this.forceWifiUsage();
+
+                // Wait for connection to finish, otherwise throw a timeout error
+                new ValidateConnection().execute(call, networkId, this);
+
+            } else {
+                call.reject("INVALID_NETWORK_ID_TO_CONNECT");
+            }
         } else {
             String ssid = call.getString("ssid");
             String password =  call.getString("password");
@@ -103,7 +133,7 @@ public class WifiService {
             call.reject("ERROR_API_29_OR_GREATER_REQUIRED");
         } else {
             String ssid = call.getString("ssid");
-            String password =  call.getString("password");
+            String password = call.getString("password");
 
             String connectedSSID = this.getWifiServiceInfo(call);
 
@@ -114,7 +144,6 @@ public class WifiService {
                 if (password != null && password.length() > 0) {
                     builder.setWpa2Passphrase(password);
                 }
-
                 WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
                 NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
                 networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
@@ -130,6 +159,65 @@ public class WifiService {
 
     }
 
+    private int add(PluginCall call) {
+
+        String ssid = call.getString("ssid");
+        String password =  call.getString("password");
+
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + ssid + "\"";   // Please note the quotes. String should contain ssid in quotes
+        conf.status = WifiConfiguration.Status.ENABLED;
+        conf.priority = 4000;
+
+        if (password != null) {
+            conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+            conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+            conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+            conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+            conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+
+            conf.preSharedKey = "\"" + password + "\"";
+
+        } else {
+
+            conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+            conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+            conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+            conf.allowedAuthAlgorithms.clear();
+            conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+            conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+            conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+        }
+
+
+        WifiManager wifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
+        int networkId = -1;
+        try {
+            networkId = wifiManager.addNetwork(conf);
+        } catch (Exception e) {
+           /** */
+        }
+        // Fallback and search for SSID if adding failed
+        if (networkId == -1) {
+            @SuppressLint("MissingPermission") List<WifiConfiguration> currentNetworks = wifiManager.getConfiguredNetworks();
+            for (WifiConfiguration network : currentNetworks) {
+                if (network.SSID != null) {
+                    if(network.SSID.equals(ssid)) {
+                        networkId = network.networkId;
+                    }
+                }
+            }
+        }
+        return networkId;
+    }
+
     private void forceWifiUsageQ(NetworkRequest networkRequest, final boolean prefix) {
         final ConnectivityManager manager = (ConnectivityManager) this.context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -139,33 +227,127 @@ public class WifiService {
                     .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     .build();
         }
-        if (API_VERSION > 23) {
+        manager.requestNetwork(networkRequest, new ConnectivityManager.NetworkCallback() {
+            @SuppressLint("NewApi")
+            @Override
+            public void onAvailable(Network network) {
+                manager.bindProcessToNetwork(network);
+                String currentSSID = WifiService.this.getWifiServiceInfo(null);
+                PluginCall call = WifiService.this.savedCall;
+                String ssid = call.getString("ssid");
+                if (currentSSID != null && (prefix && currentSSID.startsWith(ssid) || !prefix && currentSSID.equals(ssid))) {
+                    WifiService.this.getSSID(WifiService.this.savedCall);
+                } else {
+                    call.reject("ERROR_CONNECTED_SSID_DOES_NOT_MATCH_REQUESTED_SSID");
+                }
+                WifiService.this.networkCallback = this;
+            }
+
+            @Override
+            public void onUnavailable() {
+                PluginCall call = WifiService.this.savedCall;
+                if (call != null) {
+                    call.reject("ERROR_CONNECTION_FAILED");
+                }
+            }
+        });
+
+    }
+
+    private void forceWifiUsage() {
+        boolean allowed = false;
+
+        // Only need ACTION_MANAGE_WRITE_SETTINGS on 6.0.0, 6.0.1 does not need it
+        if (API_VERSION != 23 || Build.VERSION.RELEASE.equals("6.0.1")) {
+            allowed = true;
+        } else {
+            // On M 6.0.0 (N+ or higher and 6.0.1 hit above), we need ACTION_MANAGE_WRITE_SETTINGS to forceWifi.
+            allowed = Settings.System.canWrite(this.context);
+            if (!allowed) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + this.context.getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                this.context.startActivity(intent);
+            }
+        }
+
+        if (allowed) {
+            final ConnectivityManager manager = (ConnectivityManager) this.context
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkRequest networkRequest = new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build();
             manager.requestNetwork(networkRequest, new ConnectivityManager.NetworkCallback() {
                 @Override
                 public void onAvailable(Network network) {
-                    manager.bindProcessToNetwork(network);
-                    String currentSSID = WifiService.this.getWifiServiceInfo(null);
-                    PluginCall call = WifiService.this.savedCall;
-                    String ssid = call.getString("ssid");
-                    if (prefix && currentSSID.startsWith(ssid) || !prefix && currentSSID.equals(ssid)) {
-                        WifiService.this.getSSID(WifiService.this.savedCall);
+                    if (API_VERSION >= 23) {
+                        manager.bindProcessToNetwork(network);
                     } else {
-                        call.reject("ERROR_CONNECTED_SSID_DOES_NOT_MATCH_REQUESTED_SSID");
+                        //deprecated in API level 23
+                        ConnectivityManager.setProcessDefaultNetwork(network);
                     }
-                    WifiService.this.networkCallback = this;
-                }
-
-                @Override
-                public void onUnavailable() {
-                    PluginCall call = WifiService.this.savedCall;
-                    call.reject("ERROR_CONNECTION_FAILED");
+                    manager.unregisterNetworkCallback(this);
                 }
             });
         }
     }
 
+    private class ValidateConnection extends AsyncTask<Object, Void, String[]> {
+        PluginCall call;
+        WifiService wifiService;
+        @Override
+        protected void onPostExecute(String[] results) {
+            String error = results[0];
+            if (error != null) {
+                this.call.reject(error);
+            } else {
+                this.wifiService.getSSID(call);
+            }
+        }
+
+        @Override
+        protected String[] doInBackground(Object... params) {
+            this.call = (PluginCall) params[0];
+
+            int networkIdToConnect = (Integer) params[1];
+            this.wifiService = (WifiService) params[2];
+
+            final int TIMES_TO_RETRY = 30;
+            for (int i = 0; i < TIMES_TO_RETRY; i++) {
+
+                WifiInfo info = wifiManager.getConnectionInfo();
+                NetworkInfo.DetailedState connectionState = info
+                        .getDetailedStateOf(info.getSupplicantState());
+
+                boolean isConnected =
+                        // need to ensure we're on correct network because sometimes this code is
+                        // reached before the initial network has disconnected
+                        info.getNetworkId() == networkIdToConnect && (
+                                connectionState == NetworkInfo.DetailedState.CONNECTED ||
+                                        // Android seems to sometimes get stuck in OBTAINING_IPADDR after it has received one
+                                        (connectionState == NetworkInfo.DetailedState.OBTAINING_IPADDR
+                                                && info.getIpAddress() != 0)
+                        );
+
+                if (isConnected) {
+                    return new String[]{ null, "NETWORK_CONNECTION_COMPLETED" };
+                }
+
+                Log.d(TAG, "Got " + connectionState.name() + " on " + (i + 1) + " out of " + TIMES_TO_RETRY);
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, e.getMessage());
+                    return new String[]{ "INTERRUPT_EXCEPT_WHILE_CONNECTING", null };
+                }
+            }
+            Log.d(TAG, "    Network failed to finish connecting within the timeout");
+            return new String[]{ "CONNECT_FAILED_TIMEOUT", null };
+        }
+    }
+
     private String formatIP(int ip) {
         return String.format(
+                Locale.ENGLISH,
                 "%d.%d.%d.%d",
                 (ip & 0xff),
                 (ip >> 8 & 0xff),
