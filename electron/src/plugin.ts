@@ -63,6 +63,11 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
         return this.checkConnection();
     }
 
+    async disconnect(): Promise<{ ssid: string | null }> {
+        await this.Wifi.disconnect();
+        return { ssid: null };
+    }
+
     private async checkConnection(retry: number = 10): Promise<{ ssid: string | null }> {
         let result: { ssid: string };
         let count: number = 0;
@@ -85,6 +90,7 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
         });
     }
 }
+
 const Wifi = new WifiWebElectron();
 export { Wifi };
 import { registerWebPlugin } from '@capacitor/core';

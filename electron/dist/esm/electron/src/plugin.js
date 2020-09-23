@@ -12,7 +12,6 @@ export class WifiWebElectron extends WebPlugin {
         this.RemoteRef = null;
         this.Os = null;
         this.Wifi = null;
-        console.log('Wifi');
         this.RemoteRef = remote;
         this.Path = require('path');
         this.NodeFs = require('fs');
@@ -35,8 +34,10 @@ export class WifiWebElectron extends WebPlugin {
         return __awaiter(this, void 0, void 0, function* () {
             const currentConnections = yield this.Wifi.getCurrentConnections();
             if (currentConnections && currentConnections[0]) {
-                console.log(currentConnections);
                 return { ssid: currentConnections[0].ssid };
+            }
+            else {
+                throw new Error('ERROR_NO_NETWORK_FOUND');
             }
         });
     }
@@ -48,8 +49,15 @@ export class WifiWebElectron extends WebPlugin {
     }
     connectPrefix(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            // TODO List Networks in Popup which are available via SCAN and match the prefix
             yield this.Wifi.connect(options);
             return this.checkConnection();
+        });
+    }
+    disconnect() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.Wifi.disconnect();
+            return { ssid: null };
         });
     }
     checkConnection(retry = 10) {
@@ -58,11 +66,15 @@ export class WifiWebElectron extends WebPlugin {
             let count = 0;
             while (!result && count < retry) {
                 count++;
-                result = yield this.getSSID();
-                yield this.timeout(200);
+                result = yield this.getSSID().catch(() => null);
+                yield this.timeout(100);
             }
-            console.log(count);
-            return result;
+            if (!result) {
+                throw new Error('ERROR_FAILED_TO_CONNECT');
+            }
+            else {
+                return result;
+            }
         });
     }
     timeout(millis) {

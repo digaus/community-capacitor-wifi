@@ -22,4 +22,7 @@ export interface WifiPlugin {
     }): Promise<{
         ssid: string | null;
     }>;
+    disconnect(): Promise<{
+        ssid: string | null;
+    }>;
 }

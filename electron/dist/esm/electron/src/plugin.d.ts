@@ -16,15 +16,16 @@ export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
     connect(options: {
         ssid: string;
         password?: string;
-        authType?: string;
     }): Promise<{
         ssid: string | null;
     }>;
     connectPrefix(options: {
         ssid: string;
         password?: string;
-        authType?: string;
     }): Promise<{
+        ssid: string | null;
+    }>;
+    disconnect(): Promise<{
         ssid: string | null;
     }>;
     private checkConnection;

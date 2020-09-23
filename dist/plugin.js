@@ -39,6 +39,11 @@ var capacitorPlugin = (function (exports, core) {
                 return { ssid: null };
             });
         }
+        disconnect() {
+            return __awaiter(this, void 0, void 0, function* () {
+                return { ssid: null };
+            });
+        }
     }
     const Wifi = new WifiWeb();
     core.registerWebPlugin(Wifi);
