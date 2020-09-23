@@ -22,6 +22,9 @@ export declare class WifiWeb extends WebPlugin implements WifiPlugin {
     }): Promise<{
         ssid: string | null;
     }>;
+    disconnect(): Promise<{
+        ssid: string | null;
+    }>;
 }
 declare const Wifi: WifiWeb;
 export { Wifi };
