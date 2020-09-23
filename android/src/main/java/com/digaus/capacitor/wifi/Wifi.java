@@ -65,6 +65,11 @@ public class Wifi extends Plugin {
 
     }
 
+    @PluginMethod()
+    public void disconnect(PluginCall call) {
+        this.wifiService.disconnect(call);
+    }
+
     @Override
     protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 

@@ -169,6 +169,10 @@ public class Wifi: CAPPlugin {
         }
     }
 
+    @objc func disconnect(_ call: CAPPluginCall) {
+        call.reject("ERROR_DISCONNECT_NOT_SUPPORTED");
+    }
+
     @objc func getWiFiAddress() -> String? {
         var address : String?
 

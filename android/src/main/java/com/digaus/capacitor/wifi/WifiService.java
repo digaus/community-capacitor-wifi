@@ -78,53 +78,46 @@ public class WifiService {
 
     public void connect(PluginCall call) {
         this.savedCall = call;
-        if (API_VERSION < 29) {
-            int networkId = this.add(call);
-            if (networkId > -1) {
-                // Release current connection
-                if (API_VERSION >= 23) {
-                    ConnectivityManager manager = (ConnectivityManager) this.context
-                            .getSystemService(Context.CONNECTIVITY_SERVICE);
-                    manager.bindProcessToNetwork(null);
-                } else if (API_VERSION >= 21) {
-                    ConnectivityManager.setProcessDefaultNetwork(null);
+        String ssid = call.getString("ssid");
+        String password =  call.getString("password");
+        String connectedSSID = this.getWifiServiceInfo(call);
+
+        if (!ssid.equals(connectedSSID)) {
+            // Release current connection if there is one
+            this.releasePreviousConnection();
+
+            if (API_VERSION < 29) {
+                int networkId = this.addNetwork(call);
+                if (networkId > -1) {
+                    wifiManager.enableNetwork(networkId, true);
+                    wifiManager.reconnect();
+
+                    this.forceWifiUsage(null);
+
+
+                } else {
+                    call.reject("INVALID_NETWORK_ID_TO_CONNECT");
                 }
-
-                wifiManager.enableNetwork(networkId, true);
-                wifiManager.reconnect();
-                this.forceWifiUsage();
-
-                // Wait for connection to finish, otherwise throw a timeout error
-                new ValidateConnection().execute(call, networkId, this);
-
             } else {
-                call.reject("INVALID_NETWORK_ID_TO_CONNECT");
+                    WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
+                    builder.setSsid(ssid);
+                    if (password != null && password.length() > 0) {
+                        builder.setWpa2Passphrase(password);
+                    }
+
+                    WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
+                    NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
+                    networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+                    networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
+                    networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
+                    networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
+                    NetworkRequest networkRequest = networkRequestBuilder.build();
+                    this.forceWifiUsage(networkRequest);
             }
+
         } else {
-            String ssid = call.getString("ssid");
-            String password =  call.getString("password");
-            String connectedSSID = this.getWifiServiceInfo(call);
-
-            if (!ssid.equals(connectedSSID)) {
-                WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
-                builder.setSsid(ssid);
-                if (password != null && password.length() > 0) {
-                    builder.setWpa2Passphrase(password);
-                }
-
-                WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
-                NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
-                networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
-                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
-                networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
-                NetworkRequest networkRequest = networkRequestBuilder.build();
-                this.forceWifiUsageQ(networkRequest, false);
-            } else {
-                this.getSSID(call);
-            }
+            this.getSSID(call);
         }
-
     }
 
     public void connectPrefix(PluginCall call) {
@@ -138,6 +131,9 @@ public class WifiService {
             String connectedSSID = this.getWifiServiceInfo(call);
 
             if (!ssid.equals(connectedSSID)) {
+
+                this.releasePreviousConnection();
+
                 WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
                 PatternMatcher ssidPattern = new PatternMatcher(ssid, PatternMatcher.PATTERN_PREFIX);
                 builder.setSsidPattern(ssidPattern);
@@ -151,7 +147,10 @@ public class WifiService {
                 networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
                 networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
                 NetworkRequest networkRequest = networkRequestBuilder.build();
-                this.forceWifiUsageQ(networkRequest, true);
+                this.forceWifiUsage(networkRequest);
+
+                // Wait for connection to finish, otherwise throw a timeout error
+                new ValidateConnection().execute(call, this);
             } else {
                 this.getSSID(call);
             }
@@ -159,7 +158,31 @@ public class WifiService {
 
     }
 
-    private int add(PluginCall call) {
+    public void disconnect(PluginCall call) {
+        this.savedCall = call;
+        if (API_VERSION < 29) {
+            wifiManager.disconnect();
+        } else {
+            this.releasePreviousConnection();
+        }
+        call.success();
+
+    }
+
+    private void releasePreviousConnection() {
+        if (API_VERSION >= 23) {
+            ConnectivityManager manager = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (this.networkCallback != null) {
+                manager.unregisterNetworkCallback(this.networkCallback);
+                this.networkCallback = null;
+            }
+            manager.bindProcessToNetwork(null);
+        } else if (API_VERSION >= 21) {
+            ConnectivityManager.setProcessDefaultNetwork(null);
+        }
+
+    }
+    private int addNetwork(PluginCall call) {
 
         String ssid = call.getString("ssid");
         String password =  call.getString("password");
@@ -202,7 +225,7 @@ public class WifiService {
         try {
             networkId = wifiManager.addNetwork(conf);
         } catch (Exception e) {
-           /** */
+            /** */
         }
         // Fallback and search for SSID if adding failed
         if (networkId == -1) {
@@ -218,50 +241,13 @@ public class WifiService {
         return networkId;
     }
 
-    private void forceWifiUsageQ(NetworkRequest networkRequest, final boolean prefix) {
-        final ConnectivityManager manager = (ConnectivityManager) this.context
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (networkRequest == null) {
-            networkRequest = new NetworkRequest.Builder()
-                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                    .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    .build();
-        }
-        manager.requestNetwork(networkRequest, new ConnectivityManager.NetworkCallback() {
-            @SuppressLint("NewApi")
-            @Override
-            public void onAvailable(Network network) {
-                manager.bindProcessToNetwork(network);
-                String currentSSID = WifiService.this.getWifiServiceInfo(null);
-                PluginCall call = WifiService.this.savedCall;
-                String ssid = call.getString("ssid");
-                if (currentSSID != null && (prefix && currentSSID.startsWith(ssid) || !prefix && currentSSID.equals(ssid))) {
-                    WifiService.this.getSSID(WifiService.this.savedCall);
-                } else {
-                    call.reject("ERROR_CONNECTED_SSID_DOES_NOT_MATCH_REQUESTED_SSID");
-                }
-                WifiService.this.networkCallback = this;
-            }
-
-            @Override
-            public void onUnavailable() {
-                PluginCall call = WifiService.this.savedCall;
-                if (call != null) {
-                    call.reject("ERROR_CONNECTION_FAILED");
-                }
-            }
-        });
-
-    }
-
-    private void forceWifiUsage() {
+    private void forceWifiUsage(NetworkRequest networkRequest) {
         boolean allowed = false;
 
         // Only need ACTION_MANAGE_WRITE_SETTINGS on 6.0.0, 6.0.1 does not need it
         if (API_VERSION != 23 || Build.VERSION.RELEASE.equals("6.0.1")) {
             allowed = true;
         } else {
-            // On M 6.0.0 (N+ or higher and 6.0.1 hit above), we need ACTION_MANAGE_WRITE_SETTINGS to forceWifi.
             allowed = Settings.System.canWrite(this.context);
             if (!allowed) {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
@@ -272,10 +258,14 @@ public class WifiService {
         }
 
         if (allowed) {
-            final ConnectivityManager manager = (ConnectivityManager) this.context
-                    .getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkRequest networkRequest = new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build();
-            manager.requestNetwork(networkRequest, new ConnectivityManager.NetworkCallback() {
+            if (networkRequest == null) {
+                networkRequest = new NetworkRequest.Builder()
+                        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                        .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                        .build();
+            }
+            final ConnectivityManager manager = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
                 @Override
                 public void onAvailable(Network network) {
                     if (API_VERSION >= 23) {
@@ -284,43 +274,57 @@ public class WifiService {
                         //deprecated in API level 23
                         ConnectivityManager.setProcessDefaultNetwork(network);
                     }
-                    manager.unregisterNetworkCallback(this);
+
+                    // Wait for connection to finish, otherwise throw a timeout error
+                    new ValidateConnection().execute(WifiService.this.savedCall, WifiService.this);
                 }
-            });
+
+                @Override
+                public void onUnavailable() {
+                    PluginCall call = WifiService.this.savedCall;
+                    if (call != null) {
+                        call.reject("ERROR_CONNECTION_UNAVAILABLE");
+                    }
+                }
+            };
+            this.networkCallback = networkCallback;
+            manager.requestNetwork(networkRequest, networkCallback);
         }
+
     }
 
-    private class ValidateConnection extends AsyncTask<Object, Void, String[]> {
+
+    private class ValidateConnection extends AsyncTask<Object, Void, Boolean> {
         PluginCall call;
         WifiService wifiService;
+
         @Override
-        protected void onPostExecute(String[] results) {
-            String error = results[0];
-            if (error != null) {
-                this.call.reject(error);
+        protected void onPostExecute(Boolean success) {
+            if (!success) {
+                this.call.reject("ERROR_CONNECT_FAILED_TIMEOUT");
             } else {
                 this.wifiService.getSSID(call);
             }
         }
 
         @Override
-        protected String[] doInBackground(Object... params) {
+        protected Boolean doInBackground(Object... params) {
             this.call = (PluginCall) params[0];
+            this.wifiService = (WifiService) params[1];
 
-            int networkIdToConnect = (Integer) params[1];
-            this.wifiService = (WifiService) params[2];
-
-            final int TIMES_TO_RETRY = 30;
+            final int TIMES_TO_RETRY = 15;
             for (int i = 0; i < TIMES_TO_RETRY; i++) {
 
                 WifiInfo info = wifiManager.getConnectionInfo();
                 NetworkInfo.DetailedState connectionState = info
                         .getDetailedStateOf(info.getSupplicantState());
 
-                boolean isConnected =
-                        // need to ensure we're on correct network because sometimes this code is
-                        // reached before the initial network has disconnected
-                        info.getNetworkId() == networkIdToConnect && (
+                PluginCall call = this.wifiService.savedCall;
+                String currentSSID = this.wifiService.getWifiServiceInfo(null);
+                String ssid = call.getString("ssid");
+                boolean prefix = call.getMethodName().equals("connectPrefix");
+                boolean isConnected = currentSSID != null && (!prefix && currentSSID.equals(ssid) || prefix && currentSSID.startsWith(ssid)) &&
+                        (
                                 connectionState == NetworkInfo.DetailedState.CONNECTED ||
                                         // Android seems to sometimes get stuck in OBTAINING_IPADDR after it has received one
                                         (connectionState == NetworkInfo.DetailedState.OBTAINING_IPADDR
@@ -328,7 +332,7 @@ public class WifiService {
                         );
 
                 if (isConnected) {
-                    return new String[]{ null, "NETWORK_CONNECTION_COMPLETED" };
+                    return true;
                 }
 
                 Log.d(TAG, "Got " + connectionState.name() + " on " + (i + 1) + " out of " + TIMES_TO_RETRY);
@@ -337,11 +341,11 @@ public class WifiService {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     Log.e(TAG, e.getMessage());
-                    return new String[]{ "INTERRUPT_EXCEPT_WHILE_CONNECTING", null };
+                    return false;
                 }
             }
-            Log.d(TAG, "    Network failed to finish connecting within the timeout");
-            return new String[]{ "CONNECT_FAILED_TIMEOUT", null };
+            Log.d(TAG, "Network failed to finish connecting within the timeout");
+            return false;
         }
     }
 
@@ -356,20 +360,24 @@ public class WifiService {
         );
     }
 
-    
+
     private String getWifiServiceInfo(PluginCall call) {
 
         WifiInfo info = wifiManager.getConnectionInfo();
 
         if (info == null) {
-            call.reject("ERROR_READING_WIFI_INFO");
+            if (call != null) {
+                call.reject("ERROR_READING_WIFI_INFO");
+            }
             return null;
         }
 
         // Throw Error when there connection is not finished
         SupplicantState state = info.getSupplicantState();
         if (!state.equals(SupplicantState.COMPLETED)) {
-            call.reject("ERROR_CONNECTION_NOT_COMPLETED");
+            if (call != null) {
+                call.reject("ERROR_CONNECTION_NOT_COMPLETED");
+            }
             return null;
         }
 
@@ -377,7 +385,9 @@ public class WifiService {
         serviceInfo = info.getSSID();
 
         if (serviceInfo == null || serviceInfo.isEmpty() || serviceInfo == "0x") {
-            call.reject("ERROR_EMPTY_WIFI_INFORMATION");
+            if (call != null) {
+                call.reject("ERROR_EMPTY_WIFI_INFORMATION");
+            }
             return null;
         }
 
