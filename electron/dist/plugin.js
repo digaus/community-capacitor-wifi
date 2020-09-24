@@ -2129,6 +2129,7 @@ var capacitorPlugin = (function (exports) {
             this.RemoteRef = null;
             this.Os = null;
             this.Wifi = null;
+            this.ExecFile = null;
             this.RemoteRef = remote;
             this.Path = require('path');
             this.NodeFs = require('fs');
@@ -2137,6 +2138,7 @@ var capacitorPlugin = (function (exports) {
             this.Wifi.init({
                 iface: null,
             });
+            this.ExecFile = require('child_process').execFile;
         }
         getIP() {
             return __awaiter(this, void 0, void 0, function* () {
@@ -2150,6 +2152,7 @@ var capacitorPlugin = (function (exports) {
         getSSID() {
             return __awaiter(this, void 0, void 0, function* () {
                 const currentConnections = yield this.Wifi.getCurrentConnections();
+                console.log(currentConnections);
                 if (currentConnections && currentConnections[0]) {
                     return { ssid: currentConnections[0].ssid };
                 }
@@ -2166,7 +2169,16 @@ var capacitorPlugin = (function (exports) {
         }
         connectPrefix(options) {
             return __awaiter(this, void 0, void 0, function* () {
+                let currentNetwork;
+                if (process.platform === 'win32') {
+                    currentNetwork = yield this.getSSID().catch(() => ({ ssid: null }));
+                    yield this.Wifi.disconnect().catch();
+                    yield this.timeout(1000);
+                }
                 const networks = yield this.Wifi.scan().catch(() => []);
+                if (process.platform === 'win32') {
+                    yield this.reconnect(currentNetwork.ssid).catch();
+                }
                 const filteredNetworks = networks.filter((val) => { var _a; return (_a = val.ssid) === null || _a === void 0 ? void 0 : _a.startsWith(options.ssid); });
                 if (filteredNetworks.length === 0) {
                     throw new Error('ERROR_NO_NETWORK_FOUND');
@@ -2190,7 +2202,7 @@ var capacitorPlugin = (function (exports) {
                 return { ssid: null };
             });
         }
-        checkConnection(retry = 10) {
+        checkConnection(retry = 20) {
             return __awaiter(this, void 0, void 0, function* () {
                 let result;
                 let count = 0;
@@ -2239,6 +2251,28 @@ var capacitorPlugin = (function (exports) {
                     resolve(null);
                 });
             }));
+        }
+        reconnect(ssid) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    const env = Object.assign(process.env, {
+                        LANG: 'en_US.UTF-8',
+                        LC_ALL: 'en_US.UTF-8',
+                        LC_MESSAGES: 'en_US.UTF-8'
+                    });
+                    this.ExecFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env, shell: true }, (err, stdout, stderr) => {
+                        if (err) {
+                            // Add command output to error, so it's easier to handle
+                            err.stdout = stdout;
+                            err.stderr = stderr;
+                            reject(err);
+                        }
+                        else {
+                            resolve(stdout);
+                        }
+                    });
+                }));
+            });
         }
     }
     const Wifi = new WifiWebElectron();

@@ -6,6 +6,7 @@ export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
     RemoteRef: any;
     Os: any;
     Wifi: any;
+    ExecFile: any;
     constructor();
     getIP(): Promise<{
         ip: string;
@@ -31,6 +32,7 @@ export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
     private checkConnection;
     private timeout;
     private insertSelect;
+    private reconnect;
 }
 declare const Wifi: WifiWebElectron;
 export { Wifi };
