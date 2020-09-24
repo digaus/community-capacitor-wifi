@@ -49,15 +49,14 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     }
 
     async getSSID(): Promise<{ssid: string | null}> {
-        
         const currentConnections: Network[] = await this.Wifi.getCurrentConnections();
-        console.log(currentConnections)
         if (currentConnections && currentConnections[0]) {
             return { ssid: currentConnections[0].ssid };
         } else {
             throw new Error('ERROR_NO_NETWORK_FOUND');
         }
     }
+
     async connect(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {
        await this.Wifi.connect(options)
        return this.checkConnection();
@@ -111,6 +110,7 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
             return result;
         }
     }
+
     private timeout(millis: number): Promise<void> {
         return new Promise(async (resolve: () => void) => {
             setTimeout(() => {
