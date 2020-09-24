@@ -21,6 +21,7 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     RemoteRef: any = null;
     Os: any = null;
     Wifi: any = null;
+    ExecFile: any = null;
 
     constructor() {
         super({
@@ -34,7 +35,8 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
         this.Wifi = require('node-wifi');
         this.Wifi.init({
             iface: null, // network interface, choose a random wifi interface if set to null
-        })
+        });
+        this.ExecFile = require('child_process').execFile;
 
     }
 
@@ -49,6 +51,7 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     async getSSID(): Promise<{ssid: string | null}> {
         
         const currentConnections: Network[] = await this.Wifi.getCurrentConnections();
+        console.log(currentConnections)
         if (currentConnections && currentConnections[0]) {
             return { ssid: currentConnections[0].ssid };
         } else {
@@ -61,7 +64,18 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     }
 
     async connectPrefix(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {
+        let currentNetwork: { ssid: string | null };
+
+        if (process.platform === 'win32') {
+            currentNetwork = await this.getSSID().catch(() => ({ ssid: null }));
+            await this.Wifi.disconnect().catch();
+            await this.timeout(1000);
+        }
+
         const networks: Network[] = await this.Wifi.scan().catch((): any => []);
+        if (process.platform === 'win32') {
+            await this.reconnect(currentNetwork.ssid).catch();
+        }
         const filteredNetworks: Network[] = networks.filter((val: Network) => val.ssid?.startsWith(options.ssid));
         if (filteredNetworks.length === 0) {
             throw new Error('ERROR_NO_NETWORK_FOUND');
@@ -89,7 +103,7 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
         while (!result && count < retry) {
             count++;
             result = await this.getSSID().catch(() => null);
-            await this.timeout(100);
+            await this.timeout(1000);
         }
         if (!result) {
             throw new Error('ERROR_FAILED_TO_CONNECT');
@@ -135,6 +149,26 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
             
         });
 
+    }
+
+    private async reconnect(ssid: string): Promise<void> {
+        return new Promise(async (resolve: (res: any) => void, reject: (err: any) => void) => {
+            const env: any = Object.assign(process.env, {
+                LANG: 'en_US.UTF-8',
+                LC_ALL: 'en_US.UTF-8',
+                LC_MESSAGES: 'en_US.UTF-8'
+            });
+            this.ExecFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env, shell: true }, (err: any, stdout: any, stderr: any) =>  {
+            if (err) {
+              // Add command output to error, so it's easier to handle
+              err.stdout = stdout;
+              err.stderr = stderr;
+              reject(err);
+            } else {
+              resolve(stdout);
+            }
+          });
+        });
     }
 }
 
