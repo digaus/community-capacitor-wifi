@@ -1,6 +1,20 @@
 import { WebPlugin } from '@capacitor/core';
 import { WifiPlugin } from './definitions';
 const { remote } = require('electron');
+
+class Network {
+    ssid: string;
+    bssid: string;
+    mac: string; // equals to bssid (for retrocompatibility)
+    channel: number;
+    frequency: number; // in MHz
+    signal_level: number; // in dB
+    quality: number; // same as signal level but in %
+    security: string; // format depending on locale for open networks in Windows
+    security_flags: string; // encryption protocols (format currently depending of the OS)
+    mode: string;// network mode like Infra (format currently depending of the OS)
+      
+}
 export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     Path: any = null;
     NodeFs: any = null;
@@ -34,18 +48,7 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
 
     async getSSID(): Promise<{ssid: string | null}> {
         
-        const currentConnections: {
-            ssid: string,
-            bssid: string,
-            mac: string, // equals to bssid (for retrocompatibility)
-            channel: number,
-            frequency: number, // in MHz
-            signal_level: number, // in dB
-            quality: number, // same as signal level but in %
-            security: string, // format depending on locale for open networks in Windows
-            security_flags: string // encryption protocols (format currently depending of the OS)
-            mode: string // network mode like Infra (format currently depending of the OS)
-          }[] = await this.Wifi.getCurrentConnections();
+        const currentConnections: Network[] = await this.Wifi.getCurrentConnections();
         if (currentConnections && currentConnections[0]) {
             return { ssid: currentConnections[0].ssid };
         } else {
@@ -58,9 +61,21 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     }
 
     async connectPrefix(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {
-        // TODO List Networks in Popup which are available via SCAN and match the prefix
-        await this.Wifi.connect(options)
-        return this.checkConnection();
+        const networks: Network[] = await this.Wifi.scan().catch((): any => []);
+        const filteredNetworks: Network[] = networks.filter((val: Network) => val.ssid?.startsWith(options.ssid));
+        if (filteredNetworks.length === 0) {
+            throw new Error('ERROR_NO_NETWORK_FOUND');
+        } else {
+            const network: Network = await this.insertSelect(filteredNetworks)
+            if (!network) {
+                throw new Error('ERROR_NO_WIFI_SELECTED');
+            } else {
+                options.ssid = network.ssid;
+                await this.Wifi.connect(options)
+                return this.checkConnection();
+            }
+        }
+     
     }
 
     async disconnect(): Promise<{ ssid: string | null }> {
@@ -89,9 +104,42 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
             }, millis);
         });
     }
+
+    
+    private insertSelect(networks: Network[]): Promise<Network> {
+        return new Promise(async (resolve: (network: Network) => void) => {
+            let htmlString: string = '<dialog id="wifiDialog" open style="z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">'
+            
+            for (const network of networks) {
+                htmlString += `<button id="${network.ssid}" value="${network.ssid}" style="width: 100%; padding: 5px; font-size: 15px; margin-bottom: 5px;">${network.ssid}</button>`
+            }
+            htmlString += '</form></dialog';
+            document.body.insertAdjacentHTML('beforeend', '<div id="wifiBackdrop" style="height: 100vh; width: 100vw; background-color: grey; opacity: 0.5"></div>');
+            document.body.insertAdjacentHTML('beforeend', htmlString);
+            const el: HTMLElement = document.getElementById('wifiBackdrop') as HTMLElement;
+            const dialogEL: HTMLElement = document.getElementById('wifiDialog') as HTMLElement;
+
+            for (const network of networks) {
+                const networkEl: HTMLElement = document.getElementById(network.ssid) as HTMLElement;
+                networkEl.addEventListener('click', () =>  {
+                    el.remove();
+                    dialogEL.remove();
+                    resolve(network);
+                });
+            }
+            el.addEventListener('click', () =>  {
+                el.remove();
+                dialogEL.remove();
+                resolve(null);
+            });
+            
+        });
+
+    }
 }
 
 const Wifi = new WifiWebElectron();
 export { Wifi };
 import { registerWebPlugin } from '@capacitor/core';
+
 registerWebPlugin(Wifi);

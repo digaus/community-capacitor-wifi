@@ -30,6 +30,7 @@ export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
     }>;
     private checkConnection;
     private timeout;
+    private insertSelect;
 }
 declare const Wifi: WifiWebElectron;
 export { Wifi };
