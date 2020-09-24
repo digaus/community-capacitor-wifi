@@ -2166,9 +2166,22 @@ var capacitorPlugin = (function (exports) {
         }
         connectPrefix(options) {
             return __awaiter(this, void 0, void 0, function* () {
-                // TODO List Networks in Popup which are available via SCAN and match the prefix
-                yield this.Wifi.connect(options);
-                return this.checkConnection();
+                const networks = yield this.Wifi.scan().catch(() => []);
+                const filteredNetworks = networks.filter((val) => { var _a; return (_a = val.ssid) === null || _a === void 0 ? void 0 : _a.startsWith(options.ssid); });
+                if (filteredNetworks.length === 0) {
+                    throw new Error('ERROR_NO_NETWORK_FOUND');
+                }
+                else {
+                    const network = yield this.insertSelect(filteredNetworks);
+                    if (!network) {
+                        throw new Error('ERROR_NO_WIFI_SELECTED');
+                    }
+                    else {
+                        options.ssid = network.ssid;
+                        yield this.Wifi.connect(options);
+                        return this.checkConnection();
+                    }
+                }
             });
         }
         disconnect() {
@@ -2199,6 +2212,32 @@ var capacitorPlugin = (function (exports) {
                 setTimeout(() => {
                     resolve();
                 }, millis);
+            }));
+        }
+        insertSelect(networks) {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                let htmlString = '<dialog id="wifiDialog" open style="z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">';
+                for (const network of networks) {
+                    htmlString += `<button id="${network.ssid}" value="${network.ssid}" style="width: 100%; padding: 5px; font-size: 15px; margin-bottom: 5px;">${network.ssid}</button>`;
+                }
+                htmlString += '</form></dialog';
+                document.body.insertAdjacentHTML('beforeend', '<div id="wifiBackdrop" style="height: 100vh; width: 100vw; background-color: grey; opacity: 0.5"></div>');
+                document.body.insertAdjacentHTML('beforeend', htmlString);
+                const el = document.getElementById('wifiBackdrop');
+                const dialogEL = document.getElementById('wifiDialog');
+                for (const network of networks) {
+                    const networkEl = document.getElementById(network.ssid);
+                    networkEl.addEventListener('click', () => {
+                        el.remove();
+                        dialogEL.remove();
+                        resolve(network);
+                    });
+                }
+                el.addEventListener('click', () => {
+                    el.remove();
+                    dialogEL.remove();
+                    resolve(null);
+                });
             }));
         }
     }
