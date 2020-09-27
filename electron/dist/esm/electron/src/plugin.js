@@ -37,7 +37,6 @@ export class WifiWebElectron extends WebPlugin {
     getSSID() {
         return __awaiter(this, void 0, void 0, function* () {
             const currentConnections = yield this.Wifi.getCurrentConnections();
-            console.log(currentConnections);
             if (currentConnections && currentConnections[0]) {
                 return { ssid: currentConnections[0].ssid };
             }
@@ -87,14 +86,14 @@ export class WifiWebElectron extends WebPlugin {
             return { ssid: null };
         });
     }
-    checkConnection(retry = 20) {
+    checkConnection(retry = 10) {
         return __awaiter(this, void 0, void 0, function* () {
             let result;
             let count = 0;
             while (!result && count < retry) {
                 count++;
                 result = yield this.getSSID().catch(() => null);
-                yield this.timeout(100);
+                yield this.timeout(1000);
             }
             if (!result) {
                 throw new Error('ERROR_FAILED_TO_CONNECT');
@@ -113,28 +112,37 @@ export class WifiWebElectron extends WebPlugin {
     }
     insertSelect(networks) {
         return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-            let htmlString = '<dialog id="wifiDialog" open style="z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">';
+            let htmlString = '<dialog id="wifiDialog" open style="transition: opacity 0.2s ease-in-out; opacity: 0; z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">';
             for (const network of networks) {
                 htmlString += `<button id="${network.ssid}" value="${network.ssid}" style="width: 100%; padding: 5px; font-size: 15px; margin-bottom: 5px;">${network.ssid}</button>`;
             }
             htmlString += '</form></dialog';
-            document.body.insertAdjacentHTML('beforeend', '<div id="wifiBackdrop" style="height: 100vh; width: 100vw; background-color: grey; opacity: 0.5"></div>');
+            document.body.insertAdjacentHTML('beforeend', '<div id="wifiBackdrop" style="transition: opacity 0.2s ease-in-out; opacity: 0; height: 100vh; width: 100vw; background-color: grey;"></div>');
             document.body.insertAdjacentHTML('beforeend', htmlString);
-            const el = document.getElementById('wifiBackdrop');
+            const backdropEl = document.getElementById('wifiBackdrop');
             const dialogEL = document.getElementById('wifiDialog');
+            yield this.timeout(1);
+            backdropEl.style.opacity = '0.5';
+            dialogEL.style.opacity = '1';
             for (const network of networks) {
                 const networkEl = document.getElementById(network.ssid);
-                networkEl.addEventListener('click', () => {
-                    el.remove();
+                networkEl.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
+                    backdropEl.style.opacity = '0';
+                    dialogEL.style.opacity = '0';
+                    yield this.timeout(200);
+                    backdropEl.remove();
                     dialogEL.remove();
                     resolve(network);
-                });
+                }));
             }
-            el.addEventListener('click', () => {
-                el.remove();
+            backdropEl.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
+                backdropEl.style.opacity = '0';
+                dialogEL.style.opacity = '0';
+                yield this.timeout(200);
+                backdropEl.remove();
                 dialogEL.remove();
                 resolve(null);
-            });
+            }));
         }));
     }
     reconnect(ssid) {

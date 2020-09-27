@@ -122,27 +122,36 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     
     private insertSelect(networks: Network[]): Promise<Network> {
         return new Promise(async (resolve: (network: Network) => void) => {
-            let htmlString: string = '<dialog id="wifiDialog" open style="z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">'
+            let htmlString: string = '<dialog id="wifiDialog" open style="transition: opacity 0.2s ease-in-out; opacity: 0; z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">'
             
             for (const network of networks) {
                 htmlString += `<button id="${network.ssid}" value="${network.ssid}" style="width: 100%; padding: 5px; font-size: 15px; margin-bottom: 5px;">${network.ssid}</button>`
             }
             htmlString += '</form></dialog';
-            document.body.insertAdjacentHTML('beforeend', '<div id="wifiBackdrop" style="height: 100vh; width: 100vw; background-color: grey; opacity: 0.5"></div>');
+            document.body.insertAdjacentHTML('beforeend', '<div id="wifiBackdrop" style="transition: opacity 0.2s ease-in-out; opacity: 0; height: 100vh; width: 100vw; background-color: grey;"></div>');
             document.body.insertAdjacentHTML('beforeend', htmlString);
-            const el: HTMLElement = document.getElementById('wifiBackdrop') as HTMLElement;
+            const backdropEl: HTMLElement = document.getElementById('wifiBackdrop') as HTMLElement;
             const dialogEL: HTMLElement = document.getElementById('wifiDialog') as HTMLElement;
+            await this.timeout(1);
+            backdropEl.style.opacity = '0.5';
+            dialogEL.style.opacity = '1';
 
             for (const network of networks) {
                 const networkEl: HTMLElement = document.getElementById(network.ssid) as HTMLElement;
-                networkEl.addEventListener('click', () =>  {
-                    el.remove();
+                networkEl.addEventListener('click', async () =>  {
+                    backdropEl.style.opacity = '0';
+                    dialogEL.style.opacity = '0';
+                    await this.timeout(200);
+                    backdropEl.remove();
                     dialogEL.remove();
                     resolve(network);
                 });
             }
-            el.addEventListener('click', () =>  {
-                el.remove();
+            backdropEl.addEventListener('click', async () =>  {
+                backdropEl.style.opacity = '0';
+                dialogEL.style.opacity = '0';
+                await this.timeout(200);
+                backdropEl.remove();
                 dialogEL.remove();
                 resolve(null);
             });
