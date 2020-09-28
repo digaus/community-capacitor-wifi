@@ -2118,7 +2118,7 @@ var capacitorPlugin = (function (exports) {
     };
 
     const { remote } = require('electron');
-    class WifiWebElectron extends WebPlugin {
+    class WifiElectron extends WebPlugin {
         constructor() {
             super({
                 name: 'Wifi',
@@ -2283,11 +2283,11 @@ var capacitorPlugin = (function (exports) {
             });
         }
     }
-    const Wifi = new WifiWebElectron();
+    const Wifi = new WifiElectron();
     registerWebPlugin(Wifi);
 
     exports.Wifi = Wifi;
-    exports.WifiWebElectron = WifiWebElectron;
+    exports.WifiElectron = WifiElectron;
 
     return exports;
 

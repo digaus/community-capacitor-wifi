@@ -1,6 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 import { WifiPlugin } from './definitions';
-export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
+export declare class WifiElectron extends WebPlugin implements WifiPlugin {
     Path: any;
     NodeFs: any;
     RemoteRef: any;
@@ -34,5 +34,5 @@ export declare class WifiWebElectron extends WebPlugin implements WifiPlugin {
     private insertSelect;
     private reconnect;
 }
-declare const Wifi: WifiWebElectron;
+declare const Wifi: WifiElectron;
 export { Wifi };

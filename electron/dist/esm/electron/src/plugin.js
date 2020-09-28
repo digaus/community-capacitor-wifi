@@ -3,7 +3,7 @@ import { WebPlugin } from '@capacitor/core';
 const { remote } = require('electron');
 class Network {
 }
-export class WifiWebElectron extends WebPlugin {
+export class WifiElectron extends WebPlugin {
     constructor() {
         super({
             name: 'Wifi',
@@ -168,7 +168,7 @@ export class WifiWebElectron extends WebPlugin {
         });
     }
 }
-const Wifi = new WifiWebElectron();
+const Wifi = new WifiElectron();
 export { Wifi };
 import { registerWebPlugin } from '@capacitor/core';
 registerWebPlugin(Wifi);

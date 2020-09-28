@@ -12,7 +12,7 @@ import com.getcapacitor.PluginMethod;
 
 
 @NativePlugin(
-        requestCodes={Wifi.REQUEST_ACCESS_FINE_LOCATION}
+    requestCodes={Wifi.REQUEST_ACCESS_FINE_LOCATION}
 )
 public class Wifi extends Plugin {
     private static final int API_VERSION = Build.VERSION.SDK_INT;
