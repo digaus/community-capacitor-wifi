@@ -15,7 +15,7 @@ class Network {
     mode: string;// network mode like Infra (format currently depending of the OS)
       
 }
-export class WifiWebElectron extends WebPlugin implements WifiPlugin {
+export class WifiElectron extends WebPlugin implements WifiPlugin {
     Path: any = null;
     NodeFs: any = null;
     RemoteRef: any = null;
@@ -181,7 +181,7 @@ export class WifiWebElectron extends WebPlugin implements WifiPlugin {
     }
 }
 
-const Wifi = new WifiWebElectron();
+const Wifi = new WifiElectron();
 export { Wifi };
 import { registerWebPlugin } from '@capacitor/core';
 
