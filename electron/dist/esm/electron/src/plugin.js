@@ -57,7 +57,7 @@ export class WifiElectron extends WebPlugin {
             if (process.platform === 'win32') {
                 currentNetwork = yield this.getSSID().catch(() => ({ ssid: null }));
                 yield this.Wifi.disconnect().catch();
-                yield this.timeout(1000);
+                yield this.timeout(2000);
             }
             const networks = yield this.Wifi.scan().catch(() => []);
             if (process.platform === 'win32') {

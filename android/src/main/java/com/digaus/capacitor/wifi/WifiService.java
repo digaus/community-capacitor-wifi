@@ -111,6 +111,7 @@ public class WifiService {
                     networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
                     networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
                     networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
+                    networkRequestBuilder.removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
                     NetworkRequest networkRequest = networkRequestBuilder.build();
                     this.forceWifiUsage(networkRequest);
             }
@@ -146,6 +147,7 @@ public class WifiService {
                 networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
                 networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
                 networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
+                networkRequestBuilder.removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
                 NetworkRequest networkRequest = networkRequestBuilder.build();
                 this.forceWifiUsage(networkRequest);
 
@@ -242,7 +244,7 @@ public class WifiService {
     }
 
     private void forceWifiUsage(NetworkRequest networkRequest) {
-        boolean allowed = false;
+        boolean allowed;
 
         // Only need ACTION_MANAGE_WRITE_SETTINGS on 6.0.0, 6.0.1 does not need it
         if (API_VERSION != 23 || Build.VERSION.RELEASE.equals("6.0.1")) {
