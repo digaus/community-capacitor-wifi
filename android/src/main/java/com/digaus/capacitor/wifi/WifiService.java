@@ -108,8 +108,6 @@ public class WifiService {
                     WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
                     NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
                     networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-                    networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
-                    networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
                     networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
                     networkRequestBuilder.removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
                     NetworkRequest networkRequest = networkRequestBuilder.build();
@@ -144,8 +142,6 @@ public class WifiService {
                 WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
                 NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
                 networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
-                networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_TRUSTED);
                 networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
                 networkRequestBuilder.removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
                 NetworkRequest networkRequest = networkRequestBuilder.build();
