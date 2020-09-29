@@ -103,7 +103,7 @@ public class Wifi extends Plugin {
         }
         if (savedCall.getMethodName().equals("getSSID")) {
             this.wifiService.getSSID(savedCall);
-        } else if (savedCall.getMethodName().equals("getIp")) {
+        } else if (savedCall.getMethodName().equals("getIP")) {
             this.wifiService.getIP(savedCall);
         }
 
