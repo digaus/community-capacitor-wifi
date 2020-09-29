@@ -68,7 +68,7 @@ export class WifiElectron extends WebPlugin implements WifiPlugin {
         if (process.platform === 'win32') {
             currentNetwork = await this.getSSID().catch(() => ({ ssid: null }));
             await this.Wifi.disconnect().catch();
-            await this.timeout(1000);
+            await this.timeout(2000);
         }
 
         const networks: Network[] = await this.Wifi.scan().catch((): any => []);
