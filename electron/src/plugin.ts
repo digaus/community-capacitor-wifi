@@ -91,9 +91,8 @@ export class WifiElectron extends WebPlugin implements WifiPlugin {
      
     }
 
-    async disconnect(): Promise<{ ssid: string | null }> {
+    async disconnect(): Promise<void> {
         await this.Wifi.disconnect();
-        return { ssid: null };
     }
 
     private async checkConnection(retry: number = 10): Promise<{ ssid: string | null }> {
