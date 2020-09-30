@@ -160,11 +160,9 @@ public class WifiService {
         this.savedCall = call;
         if (API_VERSION < 29) {
             wifiManager.disconnect();
-        } else {
-            this.releasePreviousConnection();
         }
+        this.releasePreviousConnection();
         call.success();
-
     }
 
     private void releasePreviousConnection() {
