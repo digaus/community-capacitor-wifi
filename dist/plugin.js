@@ -41,7 +41,7 @@ var capacitorPlugin = (function (exports, core) {
         }
         disconnect() {
             return __awaiter(this, void 0, void 0, function* () {
-                return { ssid: null };
+                return;
             });
         }
     }

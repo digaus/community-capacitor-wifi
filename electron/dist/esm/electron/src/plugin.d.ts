@@ -26,9 +26,7 @@ export declare class WifiElectron extends WebPlugin implements WifiPlugin {
     }): Promise<{
         ssid: string | null;
     }>;
-    disconnect(): Promise<{
-        ssid: string | null;
-    }>;
+    disconnect(): Promise<void>;
     private checkConnection;
     private timeout;
     private insertSelect;

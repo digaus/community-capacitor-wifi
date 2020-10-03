@@ -2198,7 +2198,6 @@ var capacitorPlugin = (function (exports) {
         disconnect() {
             return __awaiter(this, void 0, void 0, function* () {
                 yield this.Wifi.disconnect();
-                return { ssid: null };
             });
         }
         checkConnection(retry = 10) {
