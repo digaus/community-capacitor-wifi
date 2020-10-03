@@ -1,4 +1,4 @@
-declare module '@capacitor/core' {
+declare module '@capacitor/core/dist/esm/core-plugin-definitions' {
     interface PluginRegistry {
         Wifi: WifiPlugin;
     }
@@ -22,7 +22,5 @@ export interface WifiPlugin {
     }): Promise<{
         ssid: string | null;
     }>;
-    disconnect(): Promise<{
-        ssid: string | null;
-    }>;
+    disconnect(): Promise<void>;
 }

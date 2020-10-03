@@ -39,7 +39,7 @@ export class WifiWeb extends WebPlugin {
     }
     disconnect() {
         return __awaiter(this, void 0, void 0, function* () {
-            return { ssid: null };
+            return;
         });
     }
 }
