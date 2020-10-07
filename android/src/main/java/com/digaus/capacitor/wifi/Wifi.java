@@ -106,6 +106,12 @@ public class Wifi extends Plugin {
         } else if (savedCall.getMethodName().equals("getIP")) {
             this.wifiService.getIP(savedCall);
         }
+        else if (savedCall.getMethodName().equals("connect")) {
+            this.wifiService.connect(savedCall);
+        }
+        else if (savedCall.getMethodName().equals("connectPrefix")) {
+            this.wifiService.connectPrefix(savedCall);
+        }
 
 
     }
