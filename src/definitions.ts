@@ -10,5 +10,4 @@ export interface WifiPlugin {
   connect(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }>;
   connectPrefix(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }>;
   disconnect(): Promise<void>;
-
 }
