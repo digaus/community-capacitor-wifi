@@ -1,5 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 import { WifiPlugin } from './definitions';
+import { registerPlugin } from '@capacitor/core';
 
 export class WifiWeb extends WebPlugin implements WifiPlugin {
   constructor() {
@@ -30,9 +31,9 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
   }
 }
 
-const Wifi = new WifiWeb();
+
+const Wifi: WifiPlugin = registerPlugin<WifiPlugin>('Wifi', {
+  web: () => import('./web').then(m => new m.WifiWeb()),
+});
 
 export { Wifi };
-
-import { registerWebPlugin } from '@capacitor/core';
-registerWebPlugin(Wifi);

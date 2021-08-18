@@ -9,34 +9,34 @@
     "lint": "npm run prettier -- --check && npm run swiftlint -- lint",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
     "swiftlint": "node-swiftlint",
-    "build": "npm run clean && tsc && rollup -c rollup.config.js",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "build-electron": "rimraf ./electron/dist && cd ./electron && tsc && rollup --config rollup.config.js"
+    "build": "npm run clean && tsc && rollup -c rollup.config.js && npm run build-electron",
+    "build-electron": "tsc --project electron/tsconfig.json && rollup -c electron/rollup.config.js && rimraf ./electron/build"
   },
   "author": "Dirk Gausmann+",
   "license": "MIT",
   "devDependencies": {
-    "@capacitor/android": "^2.4.2",
-    "@capacitor/core": "^2.4.2",
-    "@capacitor/ios": "^2.4.2",
+    "@capacitor/android": "^3.1.2",
+    "@capacitor/core": "^3.1.2",
+    "@capacitor/ios": "^3.1.2",
     "@ionic/prettier-config": "^1.0.0",
     "@ionic/swiftlint-config": "^1.0.0",
-    "@rollup/plugin-node-resolve": "^8.1.0",
+    "@rollup/plugin-commonjs": "^19.0.0",
     "@types/node": "^12.0.0",
     "electron": "^10.1.2",
     "prettier": "^2.0.5",
     "prettier-plugin-java": "^0.8.0",
     "rimraf": "^3.0.0",
-    "rollup": "^2.27.0",
+    "rollup": "^2.29.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "swiftlint": "^1.0.1",
     "tslib": "^1.13.0",
     "typescript": "~3.8.3"
   },
   "peerDependencies": {
-    "@capacitor/core": "^2.4.2"
+    "@capacitor/core": "^3.2.0"
   },
   "files": [
     "dist/",
@@ -58,7 +58,7 @@
       "src": "android"
     },
     "electron": {
-      "src": "electron/dist/plugin.js"
+      "src": "electron"
     }
   },
   "prettier": "@ionic/prettier-config",

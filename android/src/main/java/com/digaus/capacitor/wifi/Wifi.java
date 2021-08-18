@@ -1,25 +1,29 @@
 package com.digaus.capacitor.wifi;
 
 import android.Manifest;
-import android.content.pm.PackageManager;
 import android.os.Build;
 
-import com.getcapacitor.NativePlugin;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 
-
-@NativePlugin(
-    requestCodes={Wifi.REQUEST_ACCESS_FINE_LOCATION}
+@CapacitorPlugin(
+    name = "Wifi",
+    permissions = {
+        @Permission(
+            alias = "fineLocation",
+            strings = { Manifest.permission.ACCESS_FINE_LOCATION }
+        ),
+    }
 )
 public class Wifi extends Plugin {
+
     private static final int API_VERSION = Build.VERSION.SDK_INT;
-
-    static final int REQUEST_ACCESS_FINE_LOCATION = 8000;
-
-    private static String TAG = "Wifi";
 
     WifiService wifiService;
 
@@ -32,9 +36,8 @@ public class Wifi extends Plugin {
     
     @PluginMethod()
     public void getIP(PluginCall call) {
-        if (API_VERSION >= 23 && !hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            saveCall(call);
-            pluginRequestPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_ACCESS_FINE_LOCATION);
+        if (API_VERSION >= 23 && getPermissionState("fineLocation") != PermissionState.GRANTED) {
+            requestPermissionForAlias("fineLocation", call, "accessFineLocation");
         } else {
             this.wifiService.getIP(call);
         }
@@ -42,9 +45,8 @@ public class Wifi extends Plugin {
 
     @PluginMethod()
     public void getSSID(PluginCall call) {
-        if (!hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            saveCall(call);
-            pluginRequestPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_ACCESS_FINE_LOCATION);
+        if (getPermissionState("fineLocation") != PermissionState.GRANTED) {
+            requestPermissionForAlias("fineLocation", call, "accessFineLocation");
         } else {
             this.wifiService.getSSID(call);
         }
@@ -56,9 +58,8 @@ public class Wifi extends Plugin {
             call.reject("Must provide an ssid");
             return;
         }
-        if (API_VERSION >= 23 && !hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            saveCall(call);
-            pluginRequestPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_ACCESS_FINE_LOCATION);
+        if (API_VERSION >= 23 && getPermissionState("fineLocation") != PermissionState.GRANTED) {
+            requestPermissionForAlias("fineLocation", call, "accessFineLocation");
         } else {
             this.wifiService.connect(call);
         }
@@ -71,9 +72,8 @@ public class Wifi extends Plugin {
             call.reject("Must provide an ssid");
             return;
         }
-        if (API_VERSION >= 23 && !hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            saveCall(call);
-            pluginRequestPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_ACCESS_FINE_LOCATION);
+        if (API_VERSION >= 23 && getPermissionState("fineLocation") != PermissionState.GRANTED) {
+            requestPermissionForAlias("fineLocation", call, "accessFineLocation");
         } else {
             this.wifiService.connectPrefix(call);
         }
@@ -85,33 +85,20 @@ public class Wifi extends Plugin {
         this.wifiService.disconnect(call);
     }
 
-    @Override
-    protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-
-        super.handleRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        PluginCall savedCall = getSavedCall();
-        if (savedCall == null) {
-            return;
-        }
-
-        for(int result : grantResults) {
-            if (result == PackageManager.PERMISSION_DENIED) {
-                savedCall.error("User denied permission");
-                return;
+    @PermissionCallback
+    private void accessFineLocation(PluginCall call) {
+        if (getPermissionState("fineLocation") == PermissionState.GRANTED) {
+            if (call.getMethodName().equals("getSSID")) {
+                this.wifiService.getSSID(call);
+            } else if (call.getMethodName().equals("getIP")) {
+                this.wifiService.getIP(call);
+            } else if (call.getMethodName().equals("connect")) {
+                this.wifiService.connect(call);
+            } else if (call.getMethodName().equals("connectPrefix")) {
+                this.wifiService.connectPrefix(call);
             }
+        } else {
+            call.reject("User denied permission");
         }
-        if (savedCall.getMethodName().equals("getSSID")) {
-            this.wifiService.getSSID(savedCall);
-        } else if (savedCall.getMethodName().equals("getIP")) {
-            this.wifiService.getIP(savedCall);
-        } else if (savedCall.getMethodName().equals("connect")) {
-            this.wifiService.connect(savedCall);
-        } else if (savedCall.getMethodName().equals("connectPrefix")) {
-            this.wifiService.connectPrefix(savedCall);
-        }
-
-
     }
-
 }

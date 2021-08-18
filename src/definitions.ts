@@ -1,9 +1,3 @@
-declare module '@capacitor/core/dist/esm/core-plugin-definitions' {
-  interface PluginRegistry {
-    Wifi: WifiPlugin;
-  }
-}
-
 export interface WifiPlugin {
   getIP(): Promise<{ ip: string | null }>;
   getSSID(): Promise<{ ssid: string | null }>;
