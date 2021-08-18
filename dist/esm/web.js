@@ -1,12 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
-import { registerPlugin } from '@capacitor/core';
 export class WifiWeb extends WebPlugin {
-    constructor() {
-        super({
-            name: 'Wifi',
-            platforms: ['web'],
-        });
-    }
     async getIP() {
         return { ip: null };
     }
@@ -25,8 +18,4 @@ export class WifiWeb extends WebPlugin {
         return;
     }
 }
-const Wifi = registerPlugin('Wifi', {
-    web: () => import('./web').then(m => new m.WifiWeb()),
-});
-export { Wifi };
 //# sourceMappingURL=web.js.map

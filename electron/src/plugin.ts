@@ -1,6 +1,4 @@
-import { WebPlugin } from '@capacitor/core';
-import { WifiPlugin } from './definitions';
-const { remote } = require('electron');
+import type { WifiPlugin } from '../../src/definitions';
 
 class Network {
     ssid: string;
@@ -15,7 +13,7 @@ class Network {
     mode: string;// network mode like Infra (format currently depending of the OS)
       
 }
-export class WifiElectron extends WebPlugin implements WifiPlugin {
+export class Wifi implements WifiPlugin {
     Path: any = null;
     NodeFs: any = null;
     RemoteRef: any = null;
@@ -24,11 +22,7 @@ export class WifiElectron extends WebPlugin implements WifiPlugin {
     ExecFile: any = null;
 
     constructor() {
-        super({
-            name: 'Wifi',
-            platforms: ['electron'],
-        });
-        this.RemoteRef = remote;
+        this.RemoteRef = require('electron');
         this.Path = require('path');
         this.NodeFs = require('fs');
         this.Os = require('os');
@@ -180,8 +174,3 @@ export class WifiElectron extends WebPlugin implements WifiPlugin {
     }
 }
 
-const Wifi = new WifiElectron();
-export { Wifi };
-import { registerWebPlugin } from '@capacitor/core';
-
-registerWebPlugin(Wifi);

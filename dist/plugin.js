@@ -1,13 +1,11 @@
 var capacitorDevice = (function (exports, core) {
     'use strict';
 
+    const Wifi = core.registerPlugin('Wifi', {
+        web: () => Promise.resolve().then(function () { return web; }).then(m => new m.WifiWeb()),
+    });
+
     class WifiWeb extends core.WebPlugin {
-        constructor() {
-            super({
-                name: 'Wifi',
-                platforms: ['web'],
-            });
-        }
         async getIP() {
             return { ip: null };
         }
@@ -26,18 +24,13 @@ var capacitorDevice = (function (exports, core) {
             return;
         }
     }
-    const Wifi = core.registerPlugin('Wifi', {
-        web: () => Promise.resolve().then(function () { return web; }).then(m => new m.WifiWeb()),
-    });
 
     var web = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        WifiWeb: WifiWeb,
-        Wifi: Wifi
+        WifiWeb: WifiWeb
     });
 
     exports.Wifi = Wifi;
-    exports.WifiWeb = WifiWeb;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

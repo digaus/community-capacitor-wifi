@@ -1,13 +1,12 @@
 'use strict';
 
 var require$$0$1 = require('tslib');
-var require$$0 = require('@capacitor/core');
-var require$$1 = require('electron');
-var require$$2 = require('path');
-var require$$3 = require('fs');
-var require$$4 = require('os');
-var require$$5 = require('node-wifi');
-var require$$6 = require('child_process');
+var require$$0 = require('electron');
+var require$$1 = require('path');
+var require$$2 = require('fs');
+var require$$3 = require('os');
+var require$$4 = require('node-wifi');
+var require$$5 = require('child_process');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -18,7 +17,6 @@ var require$$2__default = /*#__PURE__*/_interopDefaultLegacy(require$$2);
 var require$$3__default = /*#__PURE__*/_interopDefaultLegacy(require$$3);
 var require$$4__default = /*#__PURE__*/_interopDefaultLegacy(require$$4);
 var require$$5__default = /*#__PURE__*/_interopDefaultLegacy(require$$5);
-var require$$6__default = /*#__PURE__*/_interopDefaultLegacy(require$$6);
 
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
@@ -29,29 +27,23 @@ var src = {};
 var plugin = {};
 
 Object.defineProperty(plugin, "__esModule", { value: true });
-const core_1 = require$$0__default['default'];
-const { remote } = require$$1__default['default'];
-class WifiElectron extends core_1.WebPlugin {
+class Wifi {
     constructor() {
-        super({
-            name: 'Wifi',
-            platforms: ['electron'],
-        });
         this.Path = null;
         this.NodeFs = null;
         this.RemoteRef = null;
         this.Os = null;
         this.Wifi = null;
         this.ExecFile = null;
-        this.RemoteRef = remote;
-        this.Path = require$$2__default['default'];
-        this.NodeFs = require$$3__default['default'];
-        this.Os = require$$4__default['default'];
-        this.Wifi = require$$5__default['default'];
+        this.RemoteRef = require$$0__default['default'];
+        this.Path = require$$1__default['default'];
+        this.NodeFs = require$$2__default['default'];
+        this.Os = require$$3__default['default'];
+        this.Wifi = require$$4__default['default'];
         this.Wifi.init({
             iface: null,
         });
-        this.ExecFile = require$$6__default['default'].execFile;
+        this.ExecFile = require$$5__default['default'].execFile;
     }
     async getIP() {
         var ifs = this.Os.networkInterfaces();
@@ -181,11 +173,7 @@ class WifiElectron extends core_1.WebPlugin {
         });
     }
 }
-plugin.WifiElectron = WifiElectron;
-const Wifi = new WifiElectron();
 plugin.Wifi = Wifi;
-const core_2 = require$$0__default['default'];
-core_2.registerWebPlugin(Wifi);
 
 (function (exports) {
 Object.defineProperty(exports, "__esModule", { value: true });

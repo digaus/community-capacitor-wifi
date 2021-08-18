@@ -4,13 +4,11 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var core = require('@capacitor/core');
 
+const Wifi = core.registerPlugin('Wifi', {
+    web: () => Promise.resolve().then(function () { return web; }).then(m => new m.WifiWeb()),
+});
+
 class WifiWeb extends core.WebPlugin {
-    constructor() {
-        super({
-            name: 'Wifi',
-            platforms: ['web'],
-        });
-    }
     async getIP() {
         return { ip: null };
     }
@@ -29,16 +27,11 @@ class WifiWeb extends core.WebPlugin {
         return;
     }
 }
-const Wifi = core.registerPlugin('Wifi', {
-    web: () => Promise.resolve().then(function () { return web; }).then(m => new m.WifiWeb()),
-});
 
 var web = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    WifiWeb: WifiWeb,
-    Wifi: Wifi
+    WifiWeb: WifiWeb
 });
 
 exports.Wifi = Wifi;
-exports.WifiWeb = WifiWeb;
 //# sourceMappingURL=plugin.cjs.js.map
