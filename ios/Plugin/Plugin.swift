@@ -111,7 +111,7 @@ public class Wifi: CAPPlugin {
                 if error != nil {
                     if error?.localizedDescription == "already associated."
                     {
-                        call.success([
+                        call.resolve([
                             "ssid": ssid
                         ])
                     }
@@ -120,7 +120,7 @@ public class Wifi: CAPPlugin {
                     }
                 }
                 else {
-                    call.success([
+                    call.resolve([
                         "ssid": ssid
                     ])
                 }
@@ -150,7 +150,7 @@ public class Wifi: CAPPlugin {
                 if error != nil {
                     if error?.localizedDescription == "already associated."
                     {
-                        call.success([
+                        call.resolve([
                             "ssid": ssid
                         ])
                     }
@@ -159,7 +159,7 @@ public class Wifi: CAPPlugin {
                     }
                 }
                 else {
-                    call.success([
+                    call.resolve([
                         "ssid": ssid
                     ])
                 }
@@ -180,7 +180,7 @@ public class Wifi: CAPPlugin {
                     call.reject("ERROR_CONNECTION_FAILED")
                 }
                 else {
-                    call.success()
+                    call.resolve()
                 }
             }
         } else {
