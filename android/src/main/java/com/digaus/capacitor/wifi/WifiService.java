@@ -131,7 +131,6 @@ public class WifiService {
         } else {
             String ssid = call.getString("ssid");
             String password = call.getString("password");
-            boolean isHiddenSsid = call.getBoolean("isHiddenSsid");
 
             /*String connectedSSID = this.getWifiServiceInfo(call);
 
@@ -143,9 +142,6 @@ public class WifiService {
             builder.setSsidPattern(ssidPattern);
             if (password != null && password.length() > 0) {
                 builder.setWpa2Passphrase(password);
-            }
-            if (isHiddenSsid) {
-                builder.setIsHiddenSsid(true);
             }
 
             WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
