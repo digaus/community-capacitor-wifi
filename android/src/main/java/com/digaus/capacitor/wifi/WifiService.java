@@ -79,7 +79,9 @@ public class WifiService {
     public void connect(PluginCall call) {
         this.savedCall = call;
         String ssid = call.getString("ssid");
-        String password =  call.getString("password");
+        String password = call.getString("password");
+        boolean isHiddenSsid = call.getBoolean("isHiddenSsid");
+
         /*String connectedSSID = this.getWifiServiceInfo(call);
 
         if (!ssid.equals(connectedSSID)) {*/
@@ -104,6 +106,9 @@ public class WifiService {
                 if (password != null && password.length() > 0) {
                     builder.setWpa2Passphrase(password);
                 }
+                if (isHiddenSsid) {
+                    builder.setIsHiddenSsid(true);
+                }
 
                 WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
                 NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
@@ -126,6 +131,7 @@ public class WifiService {
         } else {
             String ssid = call.getString("ssid");
             String password = call.getString("password");
+            boolean isHiddenSsid = call.getBoolean("isHiddenSsid");
 
             /*String connectedSSID = this.getWifiServiceInfo(call);
 
@@ -138,6 +144,10 @@ public class WifiService {
             if (password != null && password.length() > 0) {
                 builder.setWpa2Passphrase(password);
             }
+            if (isHiddenSsid) {
+                builder.setIsHiddenSsid(true);
+            }
+
             WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
             NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
             networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
@@ -181,12 +191,15 @@ public class WifiService {
 
         String ssid = call.getString("ssid");
         String password =  call.getString("password");
+        boolean isHiddenSsid = call.getBoolean("isHiddenSsid");
 
         WifiConfiguration conf = new WifiConfiguration();
         conf.SSID = "\"" + ssid + "\"";   // Please note the quotes. String should contain ssid in quotes
         conf.status = WifiConfiguration.Status.ENABLED;
         conf.priority = 4000;
-
+        if (isHiddenSsid) {
+            conf.hiddenSSID = true;
+        }
         if (password != null) {
             conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
             conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);

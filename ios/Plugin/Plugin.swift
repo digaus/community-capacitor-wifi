@@ -97,6 +97,7 @@ public class Wifi: CAPPlugin {
             return
         }
         let password : String? = call.getString("password") ?? nil
+        let joinOnce : boolean = call.getBool("joinOnce") ?? false
 
         if #available(iOS 11, *) {
             var configuration : NEHotspotConfiguration
@@ -105,7 +106,7 @@ public class Wifi: CAPPlugin {
             } else {
                 configuration = NEHotspotConfiguration.init(ssid: ssid)
             }
-            configuration.joinOnce = false
+            configuration.joinOnce = joinOnce
 
             NEHotspotConfigurationManager.shared.apply(configuration) { (error) in
                 if error != nil {
@@ -136,6 +137,7 @@ public class Wifi: CAPPlugin {
             return
         }
         let password : String? = call.getString("password") ?? nil
+        let joinOnce : boolean = call.getBool("joinOnce") ?? false
 
         if #available(iOS 13, *) {
             var configuration : NEHotspotConfiguration
@@ -144,7 +146,7 @@ public class Wifi: CAPPlugin {
             } else {
                 configuration = NEHotspotConfiguration.init(ssidPrefix: ssid)
             }
-            configuration.joinOnce = false
+            configuration.joinOnce = joinOnce
 
             NEHotspotConfigurationManager.shared.apply(configuration) { (error) in
                 if error != nil {
