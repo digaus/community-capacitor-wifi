@@ -43,12 +43,14 @@ export class Wifi implements WifiPlugin {
     }
 
     async getSSID(): Promise<{ssid: string | null}> {
-        const currentConnections: Network[] = await this.Wifi.getCurrentConnections();
-        if (currentConnections && currentConnections[0]) {
-            return { ssid: currentConnections[0].ssid };
-        } else {
-            throw new Error('ERROR_NO_NETWORK_FOUND');
-        }
+        return new Promise(async (resolve: (value: {ssid: string | null}) => void, reject: (err: any) => void) => {
+            const currentConnections: Network[] = await this.Wifi.getCurrentConnections().catch(() => [] as Network[]);
+            if (currentConnections && currentConnections[0]) {
+                resolve({ ssid: currentConnections[0].ssid });
+            } else {
+                reject('ERROR_NO_NETWORK_FOUND');
+            }
+        });
     }
 
     async connect(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {

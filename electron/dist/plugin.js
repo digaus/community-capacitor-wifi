@@ -53,13 +53,15 @@ class Wifi {
         return { ip };
     }
     async getSSID() {
-        const currentConnections = await this.Wifi.getCurrentConnections();
-        if (currentConnections && currentConnections[0]) {
-            return { ssid: currentConnections[0].ssid };
-        }
-        else {
-            throw new Error('ERROR_NO_NETWORK_FOUND');
-        }
+        return new Promise(async (resolve, reject) => {
+            const currentConnections = await this.Wifi.getCurrentConnections().catch(() => []);
+            if (currentConnections && currentConnections[0]) {
+                resolve({ ssid: currentConnections[0].ssid });
+            }
+            else {
+                reject('ERROR_NO_NETWORK_FOUND');
+            }
+        });
     }
     async connect(options) {
         await this.Wifi.connect(options);
