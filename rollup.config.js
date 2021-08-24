@@ -4,7 +4,7 @@ export default {
     {
       file: 'dist/plugin.js',
       format: 'iife',
-      name: 'capacitorDevice',
+      name: 'capacitorWifi',
       globals: {
         '@capacitor/core': 'capacitorExports',
       },

@@ -1,8 +1,9 @@
-var capacitorDevice = (function (exports, core) {
+var capacitorWifi = (function (exports, core) {
     'use strict';
 
     const Wifi = core.registerPlugin('Wifi', {
         web: () => Promise.resolve().then(function () { return web; }).then(m => new m.WifiWeb()),
+        electron: () => window.CapacitorCustomPlatform.plugins.Wifi,
     });
 
     class WifiWeb extends core.WebPlugin {

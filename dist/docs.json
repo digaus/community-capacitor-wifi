@@ -1,0 +1,77 @@
+{
+  "api": {
+    "name": "WifiPlugin",
+    "slug": "wifiplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "getIP",
+        "signature": "() => Promise<{ ip: string | null; }>",
+        "parameters": [],
+        "returns": "Promise<{ ip: string | null; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "getip"
+      },
+      {
+        "name": "getSSID",
+        "signature": "() => Promise<{ ssid: string | null; }>",
+        "parameters": [],
+        "returns": "Promise<{ ssid: string | null; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "getssid"
+      },
+      {
+        "name": "connect",
+        "signature": "(options: { ssid: string; password?: string; joinOnce?: boolean; isHiddenSsid?: boolean; }) => Promise<{ ssid: string | null; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ ssid: string; password?: string | undefined; joinOnce?: boolean | undefined; isHiddenSsid?: boolean | undefined; }"
+          }
+        ],
+        "returns": "Promise<{ ssid: string | null; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "connect"
+      },
+      {
+        "name": "connectPrefix",
+        "signature": "(options: { ssid: string; password?: string; joinOnce?: boolean; }) => Promise<{ ssid: string | null; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ ssid: string; password?: string | undefined; joinOnce?: boolean | undefined; }"
+          }
+        ],
+        "returns": "Promise<{ ssid: string | null; }>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "connectprefix"
+      },
+      {
+        "name": "disconnect",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "",
+        "complexTypes": [],
+        "slug": "disconnect"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [],
+  "enums": [],
+  "typeAliases": [],
+  "pluginConfigs": []
+}
