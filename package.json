@@ -59,15 +59,15 @@
     "native"
   ],
   "capacitor": {
-    "ios": {
-      "src": "ios"
-    },
-    "android": {
-      "src": "android"
-    },
-    "electron": {
-      "src": "electron"
-    }
+      "ios": {
+          "src": "ios"
+      },
+      "android": {
+          "src": "android"
+      },
+      "electron": {
+          "src": "electron"
+      }
   },
   "prettier": "@ionic/prettier-config",
   "swiftlint": "@ionic/swiftlint-config",
