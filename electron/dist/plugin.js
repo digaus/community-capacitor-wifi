@@ -1,52 +1,31 @@
 'use strict';
 
-var require$$0$1 = require('tslib');
-var require$$0 = require('electron');
-var require$$1 = require('path');
-var require$$2 = require('fs');
-var require$$3 = require('os');
-var require$$4 = require('node-wifi');
-var require$$5 = require('child_process');
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var require$$0 = require('os');
+var require$$1 = require('child_process');
+var require$$2 = require('node-wifi');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-var require$$0__default$1 = /*#__PURE__*/_interopDefaultLegacy(require$$0$1);
 var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
 var require$$1__default = /*#__PURE__*/_interopDefaultLegacy(require$$1);
 var require$$2__default = /*#__PURE__*/_interopDefaultLegacy(require$$2);
-var require$$3__default = /*#__PURE__*/_interopDefaultLegacy(require$$3);
-var require$$4__default = /*#__PURE__*/_interopDefaultLegacy(require$$4);
-var require$$5__default = /*#__PURE__*/_interopDefaultLegacy(require$$5);
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
 
 var src = {};
 
-var plugin = {};
-
-Object.defineProperty(plugin, "__esModule", { value: true });
+Object.defineProperty(src, "__esModule", { value: true });
+const os_1 = require$$0__default['default'];
+const child_process_1 = require$$1__default['default'];
+const nodeWifi = require$$2__default['default'];
 class Wifi {
     constructor() {
-        this.Path = null;
-        this.NodeFs = null;
-        this.RemoteRef = null;
-        this.Os = null;
-        this.Wifi = null;
-        this.ExecFile = null;
-        this.RemoteRef = require$$0__default['default'];
-        this.Path = require$$1__default['default'];
-        this.NodeFs = require$$2__default['default'];
-        this.Os = require$$3__default['default'];
-        this.Wifi = require$$4__default['default'];
-        this.Wifi.init({
+        nodeWifi.init({
             iface: null,
         });
-        this.ExecFile = require$$5__default['default'].execFile;
     }
     async getIP() {
-        var ifs = this.Os.networkInterfaces();
+        var ifs = os_1.default.networkInterfaces();
         var ip = Object.keys(ifs)
             .map(x => ifs[x].filter((x) => x.family === 'IPv4' && !x.internal)[0])
             .filter(x => x)[0].address;
@@ -54,7 +33,7 @@ class Wifi {
     }
     async getSSID() {
         return new Promise(async (resolve, reject) => {
-            const currentConnections = await this.Wifi.getCurrentConnections().catch(() => []);
+            const currentConnections = await nodeWifi.getCurrentConnections().catch(() => []);
             if (currentConnections && currentConnections[0]) {
                 resolve({ ssid: currentConnections[0].ssid });
             }
@@ -64,17 +43,17 @@ class Wifi {
         });
     }
     async connect(options) {
-        await this.Wifi.connect(options);
+        await nodeWifi.connect(options);
         return this.checkConnection();
     }
     async connectPrefix(options) {
         let currentNetwork;
         if (process.platform === 'win32') {
             currentNetwork = await this.getSSID().catch(() => ({ ssid: null }));
-            await this.Wifi.disconnect().catch();
+            await nodeWifi.disconnect().catch();
             await this.timeout(2000);
         }
-        const networks = await this.Wifi.scan().catch(() => []);
+        const networks = await nodeWifi.scan().catch(() => []);
         if (process.platform === 'win32') {
             await this.reconnect(currentNetwork.ssid).catch();
         }
@@ -89,13 +68,13 @@ class Wifi {
             }
             else {
                 options.ssid = network.ssid;
-                await this.Wifi.connect(options);
+                await nodeWifi.connect(options);
                 return this.checkConnection();
             }
         }
     }
     async disconnect() {
-        await this.Wifi.disconnect();
+        await nodeWifi.disconnect();
     }
     async checkConnection(retry = 10) {
         let result;
@@ -161,7 +140,7 @@ class Wifi {
                 LC_ALL: 'en_US.UTF-8',
                 LC_MESSAGES: 'en_US.UTF-8'
             });
-            this.ExecFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env, shell: true }, (err, stdout, stderr) => {
+            child_process_1.default.execFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env, shell: true }, (err, stdout, stderr) => {
                 if (err) {
                     // Add command output to error, so it's easier to handle
                     err.stdout = stdout;
@@ -175,16 +154,8 @@ class Wifi {
         });
     }
 }
-plugin.Wifi = Wifi;
+var Wifi_1 = src.Wifi = Wifi;
 
-(function (exports) {
-Object.defineProperty(exports, "__esModule", { value: true });
-const tslib_1 = require$$0__default$1['default'];
-tslib_1.__exportStar(plugin, exports);
-
-}(src));
-
-var index = /*@__PURE__*/getDefaultExportFromCjs(src);
-
-module.exports = index;
+exports.Wifi = Wifi_1;
+exports['default'] = src;
 //# sourceMappingURL=plugin.js.map

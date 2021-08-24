@@ -1,76 +1,80 @@
 {
-  "name": "@capacitor-community/wifi",
-  "version": "0.0.1",
-  "description": "Wifi Plugin for iOS, Android and Electron",
-  "main": "dist/plugin.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
-  "scripts": {
-    "lint": "npm run prettier -- --check && npm run swiftlint -- lint",
-    "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
-    "swiftlint": "node-swiftlint",
-    "clean": "rimraf ./dist",
-    "watch": "tsc --watch",
-    "prepublishOnly": "npm run build",
-    "build": "npm run clean && tsc && rollup -c rollup.config.js && npm run build-electron",
-    "build-electron": "tsc --project electron/tsconfig.json && rollup -c electron/rollup.config.js && rimraf ./electron/build"
-  },
-  "author": "Dirk Gausmann+",
-  "license": "MIT",
-  "devDependencies": {
-    "@capacitor/android": "^3.1.2",
-    "@capacitor/core": "^3.1.2",
-    "@capacitor/ios": "^3.1.2",
-    "@ionic/prettier-config": "^1.0.0",
-    "@ionic/swiftlint-config": "^1.0.0",
-    "@rollup/plugin-commonjs": "^19.0.0",
-    "@types/node": "^12.0.0",
-    "electron": "^10.1.2",
-    "prettier": "^2.0.5",
-    "prettier-plugin-java": "^0.8.0",
-    "rimraf": "^3.0.0",
-    "rollup": "^2.29.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "swiftlint": "^1.0.1",
-    "tslib": "^1.13.0",
-    "typescript": "~3.8.3"
-  },
-  "peerDependencies": {
-    "@capacitor/core": "^3.2.0"
-  },
-  "files": [
-    "dist/",
-    "ios/",
-    "android/",
-    "electron/",
-    "CapacitorCommunityWifi.podspec"
-  ],
-  "keywords": [
-    "capacitor",
-    "plugin",
-    "native"
-  ],
-  "capacitor": {
-    "ios": {
-      "src": "ios"
+    "name": "@capacitor-community/wifi",
+    "version": "0.0.1",
+    "description": "Wifi Plugin for iOS, Android and Electron",
+    "main": "dist/plugin.cjs.js",
+    "module": "dist/esm/index.js",
+    "types": "dist/esm/index.d.ts",
+    "unpkg": "dist/plugin.js",
+    "scripts": {
+        "lint": "npm run prettier -- --check && npm run swiftlint -- lint",
+        "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
+        "swiftlint": "node-swiftlint",
+        "clean": "rimraf ./dist",
+        "watch": "tsc --watch",
+        "prepublishOnly": "npm run build",
+        "build": "npm run clean && tsc && rollup -c rollup.config.js && npm run build-electron",
+        "build-electron": "tsc --project electron/tsconfig.json && rollup -c electron/rollup.config.js && rimraf ./electron/build"
     },
-    "android": {
-      "src": "android"
+    "author": "Dirk Gausmann+",
+    "license": "MIT",
+    "devDependencies": {
+        "@capacitor/android": "^3.2.0",
+        "@capacitor/core": "^3.2.0",
+        "@capacitor/ios": "^3.2.0",
+        "@ionic/prettier-config": "^1.0.0",
+        "@ionic/swiftlint-config": "^1.0.0",
+        "@rollup/plugin-commonjs": "^19.0.0",
+        "@rollup/plugin-node-resolve": "^13.0.0",
+        "@types/node": "^12.0.0",
+        "prettier": "^2.0.5",
+        "prettier-plugin-java": "^0.8.0",
+        "rimraf": "^3.0.0",
+        "rollup": "^2.27.0",
+        "rollup-plugin-node-resolve": "^5.2.0",
+        "swiftlint": "^1.0.1",
+        "tslib": "^1.13.0",
+        "typescript": "~3.8.3"
     },
-    "electron": {
-      "src": "electron"
+    "peerDependencies": {
+        "@capacitor/core": "^3.2.0"
+    },
+    "dependencies": {
+        "node-wifi": "^2.0.13"
+    },
+    "files": [
+        "android/src/main/",
+        "android/build.gradle",
+        "dist/",
+        "ios/Plugin/",
+        "CapacitorCommunityWifi.podspec"
+    ],
+    "keywords": [
+        "capacitor",
+        "plugin",
+        "native"
+    ],
+    "capacitor": {
+        "ios": {
+            "src": "ios"
+        },
+        "android": {
+            "src": "android"
+        },
+        "electron": {
+            "src": "electron"
+        }
+    },
+    "prettier": "@ionic/prettier-config",
+    "swiftlint": "@ionic/swiftlint-config",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/digaus/community-capacitor-wifi"
+    },
+    "bugs": {
+        "url": "https://github.com/digaus/community-capacitor-wifi/issues"
+    },
+    "publishConfig": {
+        "access": "public"
     }
-  },
-  "prettier": "@ionic/prettier-config",
-  "swiftlint": "@ionic/swiftlint-config",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/digaus/community-capacitor-wifi"
-  },
-  "bugs": {
-    "url": "https://github.com/digaus/community-capacitor-wifi/issues"
-  },
-  "dependencies": {
-    "node-wifi": "2.0.13"
-  }
 }
