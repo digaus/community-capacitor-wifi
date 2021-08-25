@@ -1,8 +1,11 @@
-import os from 'os';
-import child_process from 'child_process';
-const nodeWifi =  require('node-wifi');
+import { execFile } from 'child_process';
+import type { NetworkInterfaceInfo } from 'os';
+import { networkInterfaces } from 'os';
 
 import type { WifiPlugin } from '../../src/definitions';
+
+const nodeWifi = require('node-wifi');
+
 
 class Network {
     ssid: string;
@@ -15,7 +18,7 @@ class Network {
     security: string; // format depending on locale for open networks in Windows
     security_flags: string; // encryption protocols (format currently depending of the OS)
     mode: string;// network mode like Infra (format currently depending of the OS)
-      
+
 }
 export class Wifi implements WifiPlugin {
 
@@ -27,15 +30,15 @@ export class Wifi implements WifiPlugin {
     }
 
     async getIP(): Promise<{ ip: string }> {
-        var ifs = os.networkInterfaces();
-        var ip = Object.keys(ifs)
-            .map(x => ifs[x].filter((x: any) => x.family === 'IPv4' && !x.internal)[0])
+        const ifs: { [key: string]: NetworkInterfaceInfo[] } = networkInterfaces();
+        const ip: string = Object.keys(ifs)
+            .map((key: string) => ifs[key].filter((x: NetworkInterfaceInfo) => x.family === 'IPv4' && !x.internal)[0])
             .filter(x => x)[0].address;
         return { ip };
     }
 
-    async getSSID(): Promise<{ssid: string | null}> {
-        return new Promise(async (resolve: (value: {ssid: string | null}) => void, reject: (err: any) => void) => {
+    async getSSID(): Promise<{ ssid: string | null }> {
+        return new Promise(async (resolve: (value: { ssid: string | null }) => void, reject: (err: any) => void) => {
             const currentConnections: Network[] = await nodeWifi.getCurrentConnections().catch(() => [] as Network[]);
             if (currentConnections && currentConnections[0]) {
                 resolve({ ssid: currentConnections[0].ssid });
@@ -46,8 +49,8 @@ export class Wifi implements WifiPlugin {
     }
 
     async connect(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {
-       await nodeWifi.connect(options)
-       return this.checkConnection();
+        await nodeWifi.connect(options)
+        return this.checkConnection();
     }
 
     async connectPrefix(options: { ssid: string, password?: string }): Promise<{ ssid: string | null }> {
@@ -76,16 +79,16 @@ export class Wifi implements WifiPlugin {
                 return this.checkConnection();
             }
         }
-     
+
     }
 
     async disconnect(): Promise<void> {
         await nodeWifi.disconnect();
     }
 
-    private async checkConnection(retry: number = 10): Promise<{ ssid: string | null }> {
+    private async checkConnection(retry = 10): Promise<{ ssid: string | null }> {
         let result: { ssid: string };
-        let count: number = 0;
+        let count = 0;
         while (!result && count < retry) {
             count++;
             result = await this.getSSID().catch(() => null);
@@ -106,11 +109,11 @@ export class Wifi implements WifiPlugin {
         });
     }
 
-    
+
     private insertSelect(networks: Network[]): Promise<Network> {
         return new Promise(async (resolve: (network: Network) => void) => {
-            let htmlString: string = '<dialog id="wifiDialog" open style="transition: opacity 0.2s ease-in-out; opacity: 0; z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">'
-            
+            let htmlString = '<dialog id="wifiDialog" open style="transition: opacity 0.2s ease-in-out; opacity: 0; z-index: 2000;width: 300px;top: 50%; transform: translateY(-50%); max-height: 80vh; overflow-y: auto; box-shadow: 0px 10px 18px #888888; border: none; border-radius: 5px"><form method="dialog">'
+
             for (const network of networks) {
                 htmlString += `<button id="${network.ssid}" value="${network.ssid}" style="width: 100%; padding: 5px; font-size: 15px; margin-bottom: 5px;">${network.ssid}</button>`
             }
@@ -125,7 +128,7 @@ export class Wifi implements WifiPlugin {
 
             for (const network of networks) {
                 const networkEl: HTMLElement = document.getElementById(network.ssid) as HTMLElement;
-                networkEl.addEventListener('click', async () =>  {
+                networkEl.addEventListener('click', async () => {
                     backdropEl.style.opacity = '0';
                     dialogEL.style.opacity = '0';
                     await this.timeout(200);
@@ -134,7 +137,7 @@ export class Wifi implements WifiPlugin {
                     resolve(network);
                 });
             }
-            backdropEl.addEventListener('click', async () =>  {
+            backdropEl.addEventListener('click', async () => {
                 backdropEl.style.opacity = '0';
                 dialogEL.style.opacity = '0';
                 await this.timeout(200);
@@ -142,7 +145,7 @@ export class Wifi implements WifiPlugin {
                 dialogEL.remove();
                 resolve(null);
             });
-            
+
         });
 
     }
@@ -154,16 +157,16 @@ export class Wifi implements WifiPlugin {
                 LC_ALL: 'en_US.UTF-8',
                 LC_MESSAGES: 'en_US.UTF-8'
             });
-            child_process.execFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env }, (err: any, stdout: any, stderr: any) =>  {
-            if (err) {
-              // Add command output to error, so it's easier to handle
-              err.stdout = stdout;
-              err.stderr = stderr;
-              reject(err);
-            } else {
-              resolve(stdout);
-            }
-          });
+            execFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env }, (err: any, stdout: any, stderr: any) => {
+                if (err) {
+                    // Add command output to error, so it's easier to handle
+                    err.stdout = stdout;
+                    err.stderr = stderr;
+                    reject(err);
+                } else {
+                    resolve(stdout);
+                }
+            });
         });
     }
 }

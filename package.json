@@ -47,9 +47,10 @@
     "@capacitor/core": "^3.2.0"
   },
   "files": [
+    "android/src/main/",
+    "android/build.gradle",
     "dist/",
-    "ios/",
-    "android/",
+    "ios/Plugin/",
     "electron/",
     "CapacitorCommunityWifi.podspec"
   ],
@@ -59,15 +60,15 @@
     "native"
   ],
   "capacitor": {
-      "ios": {
-          "src": "ios"
-      },
-      "android": {
-          "src": "android"
-      },
-      "electron": {
-          "src": "electron"
-      }
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    },
+    "electron": {
+      "src": "electron"
+    }
   },
   "prettier": "@ionic/prettier-config",
   "swiftlint": "@ionic/swiftlint-config",

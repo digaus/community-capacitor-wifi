@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var require$$0 = require('os');
-var require$$1 = require('child_process');
+var require$$0 = require('child_process');
+var require$$1 = require('os');
 var require$$2 = require('node-wifi');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -15,8 +15,9 @@ var require$$2__default = /*#__PURE__*/_interopDefaultLegacy(require$$2);
 var src = {};
 
 Object.defineProperty(src, "__esModule", { value: true });
-const os_1 = require$$0__default['default'];
-const child_process_1 = require$$1__default['default'];
+exports.Wifi = src.Wifi = void 0;
+const child_process_1 = require$$0__default['default'];
+const os_1 = require$$1__default['default'];
 const nodeWifi = require$$2__default['default'];
 class Wifi {
     constructor() {
@@ -25,9 +26,9 @@ class Wifi {
         });
     }
     async getIP() {
-        var ifs = os_1.default.networkInterfaces();
-        var ip = Object.keys(ifs)
-            .map(x => ifs[x].filter((x) => x.family === 'IPv4' && !x.internal)[0])
+        const ifs = os_1.networkInterfaces();
+        const ip = Object.keys(ifs)
+            .map((key) => ifs[key].filter((x) => x.family === 'IPv4' && !x.internal)[0])
             .filter(x => x)[0].address;
         return { ip };
     }
@@ -140,7 +141,7 @@ class Wifi {
                 LC_ALL: 'en_US.UTF-8',
                 LC_MESSAGES: 'en_US.UTF-8'
             });
-            child_process_1.default.execFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env }, (err, stdout, stderr) => {
+            child_process_1.execFile('netsh', ['wlan', 'connect', 'ssid="' + ssid + '"', 'name="' + ssid + '"'], { env }, (err, stdout, stderr) => {
                 if (err) {
                     // Add command output to error, so it's easier to handle
                     err.stdout = stdout;
@@ -154,8 +155,7 @@ class Wifi {
         });
     }
 }
-var Wifi_1 = src.Wifi = Wifi;
+exports.Wifi = src.Wifi = Wifi;
 
-exports.Wifi = Wifi_1;
 exports['default'] = src;
 //# sourceMappingURL=plugin.js.map
