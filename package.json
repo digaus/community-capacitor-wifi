@@ -26,22 +26,22 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@capacitor/android": "^3.0.0",
-    "@capacitor/core": "^3.0.0",
+    "@capacitor/android": "^3.2.0",
+    "@capacitor/core": "^3.2.0",
     "@capacitor/docgen": "0.0.17",
-    "@capacitor/ios": "^3.0.0",
+    "@capacitor/ios": "^3.2.0",
     "@ionic/eslint-config": "^0.3.0",
-    "@ionic/prettier-config": "~1.0.1",
+    "@ionic/prettier-config": "~2.0.0",
     "@ionic/swiftlint-config": "^1.1.2",
-    "@rollup/plugin-commonjs": "^19.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.0",
-    "eslint": "^7.11.0",
-    "prettier": "~2.3.0",
-    "prettier-plugin-java": "~1.0.2",
-    "rimraf": "^3.0.0",
-    "rollup": "^2.52.6",
+    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.4",
+    "eslint": "^7.32.0",
+    "prettier": "~2.3.2",
+    "prettier-plugin-java": "~1.3.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.56.3",
     "swiftlint": "^1.0.1",
-    "typescript": "~4.1.5"
+    "typescript": "~4.3.5"
   },
   "peerDependencies": {
     "@capacitor/core": "^3.2.0"
@@ -83,7 +83,7 @@
     "url": "https://github.com/digaus/community-capacitor-wifi/issues"
   },
   "dependencies": {
-    "node-wifi": "2.0.13"
+    "node-wifi": "~2.0.15"
   },
   "publishConfig": {
     "access": "public"

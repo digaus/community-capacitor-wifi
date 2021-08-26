@@ -9,6 +9,6 @@ export default {
         sourcemap: true,
         exports: 'named',
     },
-    external: ['@capacitor/core', 'os', 'path', 'node-wifi'],
+    external: ['@capacitor/core', 'os', 'node-wifi'],
     plugins: [resolve(), commonjs()]
 };
