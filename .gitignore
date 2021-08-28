@@ -1,8 +1,10 @@
 node_modules/
-
+package-lock.json
 Pods
 Build
 *.iml
 .idea
 .gradle
 local.properties
+dist/
+electron/dist/
