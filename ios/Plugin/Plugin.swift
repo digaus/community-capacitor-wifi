@@ -137,7 +137,7 @@ public class Wifi: CAPPlugin {
             return
         }
         let password : String? = call.getString("password") ?? nil
-        let joinOnce : boolean = call.getBool("joinOnce") ?? false
+        let joinOnce : Bool = call.getBool("joinOnce") ?? false
 
         if #available(iOS 13, *) {
             var configuration : NEHotspotConfiguration
