@@ -80,8 +80,10 @@ public class WifiService {
         this.savedCall = call;
         String ssid = call.getString("ssid");
         String password = call.getString("password");
-        boolean isHiddenSsid = call.getBoolean("isHiddenSsid");
-
+        boolean isHiddenSsid = false;
+        if (call.hasOption("isHiddenSsid")) {
+            isHiddenSsid = call.getBoolean("isHiddenSsid");
+        }
         /*String connectedSSID = this.getWifiServiceInfo(call);
 
         if (!ssid.equals(connectedSSID)) {*/
