@@ -13,7 +13,8 @@
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build",
-    "build-electron": "rimraf ./electron/dist && cd ./electron && tsc && rollup --config rollup.config.js"
+    "build-electron": "rimraf ./electron/dist && cd ./electron && tsc && rollup --config rollup.config.js",
+    "prepare": "npm run build"
   },
   "author": "Dirk Gausmann+",
   "license": "MIT",
