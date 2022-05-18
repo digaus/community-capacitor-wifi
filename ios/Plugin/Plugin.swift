@@ -7,13 +7,15 @@ import CoreLocation
 class WifiHandler: NSObject, CLLocationManagerDelegate {
     var locationManager : CLLocationManager!
     var call: CAPPluginCall
+    var disconnect: Bool
 
-    init(call: CAPPluginCall) {
+    init(call: CAPPluginCall, disconnect: Bool?) {
         self.call = call
+        self.disconnect = disconnect!
         super.init()
         checkSSID()
-        
     }
+
     @objc func checkSSID() {
         if #available(iOS 13.0, *) {
             requestPermission()
@@ -45,6 +47,9 @@ class WifiHandler: NSObject, CLLocationManagerDelegate {
             case .denied:
                 call.reject("ERROR_LOCATION_DENIED");
                 break
+        @unknown default:
+            call.reject("ERROR_LOCATION");
+            break
         }
     }
     @objc func getSSID() {
@@ -63,9 +68,14 @@ class WifiHandler: NSObject, CLLocationManagerDelegate {
             self.call.reject("ERROR_WIFI_INFORMATION_EMPTY");
            return
         }
-        self.call.success([
-           "ssid": ssid!
-        ])
+        if self.disconnect == true {
+            NEHotspotConfigurationManager.shared.removeConfiguration(forSSID: ssid!)
+            self.call.resolve()
+        } else {
+            self.call.resolve([
+               "ssid": ssid!
+            ])
+        }
     }
 }
 
@@ -80,14 +90,14 @@ public class Wifi: CAPPlugin {
             call.reject("ERROR_NO_WIFI_IP_AVAILABLE");
             return
         } 
-        call.success([
+        call.resolve([
             "ip": address!
         ])
     }
 
     @objc func getSSID(_ call: CAPPluginCall)  {
         DispatchQueue.main.async {
-            self.wifiHandler = WifiHandler(call: call)
+            self.wifiHandler = WifiHandler(call: call, disconnect: false)
         }
     }
 
@@ -172,33 +182,26 @@ public class Wifi: CAPPlugin {
     }
 
     @objc func disconnect(_ call: CAPPluginCall) {
-       /* if #available(iOS 11, *) {
-            guard let ssid = call.options["ssid"] as? String else {
-                call.reject("ERROR_SSID_REQUIRED")
-                return
+       if #available(iOS 11, *) {
+            DispatchQueue.main.async {
+                self.wifiHandler = WifiHandler(call: call, disconnect: true)
             }
-            NEHotspotConfigurationManager.shared.removeConfigurationForSSID(ssid) { (error) in
-                if error != nil {
-                    call.reject("ERROR_CONNECTION_FAILED")
-                }
-                else {
-                    call.resolve()
-                }
-            }
+
         } else {
             call.reject("ERROR_ONLY_SUPPORTED_IOS_11")
-        }*/
+        }
         call.reject("ERROR_NOT_SUPPORTED")
     }
 
     @objc func getWiFiAddress() -> String? {
-        var address : String?
+        var addressWifi : String?
+        var addressVpn : String?
 
         // Get list of all interfaces on the local machine:
         var ifaddr : UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddr) == 0 else { return nil }
         guard let firstAddr = ifaddr else { return nil }
-
+        
         // For each interface ...
         for ifptr in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
             let interface = ifptr.pointee
@@ -209,18 +212,32 @@ public class Wifi: CAPPlugin {
             if addrFamily == UInt8(AF_INET) {
                 // Check interface name:
                 let name = String(cString: interface.ifa_name)
-                if  name == "en0" || name.starts(with: "tap") || name.starts(with: "ppp") || name.starts(with: "ipsec") || name.starts(with: "utun") {
+
+                if  name == "en0" {
                     // Convert interface address to a human readable string:
                     var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
                     getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
                                 &hostname, socklen_t(hostname.count),
                                 nil, socklen_t(0), NI_NUMERICHOST)
-                    address = String(cString: hostname)
+                    addressWifi = String(cString: hostname)
+                    
+                }
+                
+                if  name.starts(with: "tap") || name.starts(with: "ppp") || name.starts(with: "ipsec") || name.starts(with: "utun") {
+                    // Convert interface address to a human readable string:
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
+                                &hostname, socklen_t(hostname.count),
+                                nil, socklen_t(0), NI_NUMERICHOST)
+                    addressVpn = String(cString: hostname)
                 }
             }
         }
         freeifaddrs(ifaddr)
-
-        return address
+        if (addressWifi != nil) {
+            return addressWifi;
+        } else {
+            return addressVpn;
+        }
     }
 }
