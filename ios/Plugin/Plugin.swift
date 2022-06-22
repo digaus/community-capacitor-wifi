@@ -29,7 +29,7 @@ class WifiHandler: NSObject, CLLocationManagerDelegate {
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
     }
-    
+
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         switch status {
             case .notDetermined:
@@ -81,7 +81,7 @@ class WifiHandler: NSObject, CLLocationManagerDelegate {
 
 @objc(Wifi)
 public class Wifi: CAPPlugin {
-    
+
     var wifiHandler: WifiHandler?
 
     @objc func getIP(_ call: CAPPluginCall) {
@@ -89,7 +89,7 @@ public class Wifi: CAPPlugin {
         guard let myString = address, !myString.isEmpty else {
             call.reject("ERROR_NO_WIFI_IP_AVAILABLE");
             return
-        } 
+        }
         call.resolve([
             "ip": address!
         ])
@@ -190,7 +190,7 @@ public class Wifi: CAPPlugin {
         } else {
             call.reject("ERROR_ONLY_SUPPORTED_IOS_11")
         }
-        call.reject("ERROR_NOT_SUPPORTED")
+        // call.reject("ERROR_NOT_SUPPORTED")
     }
 
     @objc func getWiFiAddress() -> String? {
@@ -201,7 +201,7 @@ public class Wifi: CAPPlugin {
         var ifaddr : UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddr) == 0 else { return nil }
         guard let firstAddr = ifaddr else { return nil }
-        
+
         // For each interface ...
         for ifptr in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
             let interface = ifptr.pointee
@@ -220,9 +220,9 @@ public class Wifi: CAPPlugin {
                                 &hostname, socklen_t(hostname.count),
                                 nil, socklen_t(0), NI_NUMERICHOST)
                     addressWifi = String(cString: hostname)
-                    
+
                 }
-                
+
                 if  name.starts(with: "tap") || name.starts(with: "ppp") || name.starts(with: "ipsec") || name.starts(with: "utun") {
                     // Convert interface address to a human readable string:
                     var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
