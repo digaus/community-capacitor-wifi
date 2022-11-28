@@ -103,22 +103,22 @@ public class WifiService {
                 call.reject("INVALID_NETWORK_ID_TO_CONNECT");
             }
         } else {
-                WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
-                builder.setSsid(ssid);
-                if (password != null && password.length() > 0) {
-                    builder.setWpa2Passphrase(password);
-                }
-                if (isHiddenSsid) {
-                    builder.setIsHiddenSsid(true);
-                }
+            WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
+            builder.setSsid(ssid);
+            if (password != null && password.length() > 0) {
+                builder.setWpa2Passphrase(password);
+            }
+            if (isHiddenSsid) {
+                builder.setIsHiddenSsid(true);
+            }
 
-                WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
-                NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
-                networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-                networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
-                networkRequestBuilder.removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-                NetworkRequest networkRequest = networkRequestBuilder.build();
-                this.forceWifiUsage(networkRequest);
+            WifiNetworkSpecifier wifiNetworkSpecifier = builder.build();
+            NetworkRequest.Builder networkRequestBuilder = new NetworkRequest.Builder();
+            networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+            networkRequestBuilder.setNetworkSpecifier(wifiNetworkSpecifier);
+            networkRequestBuilder.removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+            NetworkRequest networkRequest = networkRequestBuilder.build();
+            this.forceWifiUsage(networkRequest);
         }
 
         /*} else {
@@ -189,7 +189,10 @@ public class WifiService {
 
         String ssid = call.getString("ssid");
         String password =  call.getString("password");
-        boolean isHiddenSsid = call.getBoolean("isHiddenSsid");
+        boolean isHiddenSsid = false;
+        if (call.hasOption("isHiddenSsid")) {
+            isHiddenSsid = call.getBoolean("isHiddenSsid");
+        }
 
         WifiConfiguration conf = new WifiConfiguration();
         conf.SSID = "\"" + ssid + "\"";   // Please note the quotes. String should contain ssid in quotes
